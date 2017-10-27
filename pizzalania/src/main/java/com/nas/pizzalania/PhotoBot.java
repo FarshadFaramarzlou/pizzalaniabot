@@ -32,6 +32,11 @@ public class PhotoBot extends TelegramLongPollingBot {
                 SendMessage message = new SendMessage() // Create a message object object
                         .setChatId(chat_id)
                         .setText("لطفا خدمت مورد نظر را انتخاب کنید:");
+                SendMessage order = new SendMessage()
+                        .setChatId("116979632")
+                        .setText("سفارش جدید دریافت شد:");
+                        
+                System.out.println(chat_id);
                 // Create ReplyKeyboardMarkup object
                 ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
                 // Create the keyboard (list of keyboard rows)
@@ -54,6 +59,7 @@ public class PhotoBot extends TelegramLongPollingBot {
                 // Add it to the message
                 message.setReplyMarkup(keyboardMarkup);
                 try {
+                    execute(order); // Sending our message object to user
                     execute(message); // Sending our message object to user
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
@@ -74,7 +80,8 @@ public class PhotoBot extends TelegramLongPollingBot {
                 keyboard.add(row1);
                 
                 row1 = new KeyboardRow();
-                row1.add("پیتزا مخصوص لانیا(1نفره)");
+                row1.add("پیتزا مخصوص لانیا(2نفره)");
+                keyboard.add(row1);
                 // Set the keyboard to the markup
                 keyboardMarkup.setKeyboard(keyboard);
                 // Add it to the message
