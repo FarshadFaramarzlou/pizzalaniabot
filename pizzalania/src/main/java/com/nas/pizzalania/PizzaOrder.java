@@ -1,7 +1,5 @@
 package com.nas.pizzalania;
 
-
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -15,159 +13,160 @@ import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 
-public class PhotoBot extends TelegramLongPollingBot {
-    Bill bill = new Bill();
+public class PizzaOrder extends TelegramLongPollingBot {
+
+    private Customers customers = Customers.getCusInstance();
 
     @Override
     public void onUpdateReceived(Update update) {
-
+        int step = 0;
         // We check if the update has a message and the message has text
         if (update.hasMessage() && update.getMessage().hasText()) {
             // Set variables
             String message_text = update.getMessage().getText();
             long chat_id = update.getMessage().getChatId();
+            int i = customers.isCusExist(chat_id);
 
-            System.out.println(message_text);
             if (message_text.equals("/start")) {
                 SendMessage message = new SendMessage() // Create a message object object
                         .setChatId(chat_id)
-                        .setText("لطفا خدمت مورد نظر را انتخاب کنید:");
-                SendMessage order = new SendMessage()
-                        .setChatId("116979632")
-                        .setText("سفارش جدید دریافت شد:");
-                        
-                System.out.println(chat_id);
-                // Create ReplyKeyboardMarkup object
+                        .setText("به ربات پیتزا تنوری لانیا خوش آمدید");
+                if (i != -1) {
+
+                } else {
+                    //initual a new customer
+                    Customer cus = new Customer();
+                    cus.setChat_id(chat_id);
+                    cus.setStep(1);
+                    customers.cusList.add(cus);
+                    System.out.println(chat_id);
+                }
+
                 ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
-                // Create the keyboard (list of keyboard rows)
                 List<KeyboardRow> keyboard = new ArrayList<>();
-                // Create a keyboard row
+
                 KeyboardRow row1 = new KeyboardRow();
-                // Set each button, you can also use KeyboardButton objects if you need something else than text
                 row1.add("سفارش پیتزا");
+                keyboard.add(row1);
+
+                row1 = new KeyboardRow();
                 row1.add("تکرار آخرین خرید");
-                // Add the first row to the keyboard
                 keyboard.add(row1);
-                // Create another keyboard row
+
                 row1 = new KeyboardRow();
-                // Set each button for the second line
+                row1.add("درباره من");
+                keyboard.add(row1);
+
+                row1 = new KeyboardRow();
                 row1.add("پشتیبانی");
-                // Add the second row to the keyboard
                 keyboard.add(row1);
-                // Set the keyboard to the markup
+
                 keyboardMarkup.setKeyboard(keyboard);
-                // Add it to the message
                 message.setReplyMarkup(keyboardMarkup);
-                try {
-                    execute(order); // Sending our message object to user
-                    execute(message); // Sending our message object to user
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
-            } else if (message_text.equals("سفارش پیتزا")) {
-                SendMessage message = new SendMessage() // Create a message object object
-                        .setChatId(chat_id)
-                        .setText("چه نوع پیتزایی دوست داری؟");
-                // Create ReplyKeyboardMarkup object
-                ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
-                // Create the keyboard (list of keyboard rows)
-                List<KeyboardRow> keyboard = new ArrayList<>();
-                // Create a keyboard row
-                KeyboardRow row1 = new KeyboardRow();
-                // Set each button, you can also use KeyboardButton objects if you need something else than text
-                row1.add("پیتزا مخصوص لانیا(1نفره)");
-                // Add the second row to the keyboard
-                keyboard.add(row1);
-                
-                row1 = new KeyboardRow();
-                row1.add("پیتزا مخصوص لانیا(2نفره)");
-                keyboard.add(row1);
-                // Set the keyboard to the markup
-                keyboardMarkup.setKeyboard(keyboard);
-                // Add it to the message
-                message.setReplyMarkup(keyboardMarkup);
+
                 try {
                     execute(message); // Sending our message object to user
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
-            } else if (message_text.equals("ایرانسل")) {
-                SendMessage message = new SendMessage() // Create a message object object
-                        .setChatId(chat_id)
-                        .setText("لطفا نوع شارژ را انتخاب کنید:");
-                bill.setOperator("Irancell");
-                ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
-                List<KeyboardRow> keyboard = new ArrayList<>();
-
-                KeyboardRow row1 = new KeyboardRow();
-                row1.add("کارت شارژ");
-                row1.add("شارژ برخط");
-                keyboard.add(row1);
-
-                replyKeyboardMarkup.setKeyboard(keyboard);
-                message.setReplyMarkup(replyKeyboardMarkup);
-                try {
-                    execute(message); // Sending our message object to user
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
+            } else if (message_text.equals("سفارش پیتزا") && customers.cusList.get(i).getStep() == 1) {
+                if (i != -1) {
+                    customers.cusList.get(i).addStep();
+                    chooseFood(chat_id);
+                    System.out.println(chat_id + "  " + "مشتری سفارش دارد");
+                } else {
+                    SendMessage message = new SendMessage() // Create a message object object
+                            .setChatId(chat_id)
+                            .setText("فرآیند خرید را مجدد اجرا کنید!");
                 }
-            } else if (message_text.equals("کارت شارژ")) {
-                SendMessage message = new SendMessage() // Create a message object object
-                        .setChatId(chat_id)
-                        .setText("لطفا مبلغ شارژ را انتخاب کنید:");
-                bill.setChrgType("کارت شارژ");
+            } else if (customers.cusList.get(i).getStep() == 2) {
+                 customers.cusList.get(i).addStep();
 
+                if (i != -1) {
+                    if (customers.cusList.get(i).billList.isEmpty()) {
+                        Bill bill = new Bill();
+                        Order order = new Order();
+                        Food food = new Food();
+                        food.setFoodName(message_text);
+                        order.food = food;
+                        bill.orderList.add(order);
+                        customers.cusList.get(i).billList.add(bill);
+                    } else {
+                        Order order = new Order();
+                        Food food = new Food();
+                        food.setFoodName(message_text);
+                        order.food = food;
+                        int billNum = customers.cusList.get(i).billList.size()-1;
+                        customers.cusList.get(i).billList.get(billNum).orderList.add(order);
+                    }
+                    SendMessage message = new SendMessage() // Create a message object object
+                                .setChatId(chat_id)
+                                .setText("چند تا پیتزا میخوای؟");
 
-                ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
-                List<KeyboardRow> keyboard = new ArrayList<>();
+                        ReplyKeyboardRemove keyboardMarkup = new ReplyKeyboardRemove();
+                        message.setReplyMarkup(keyboardMarkup);
+                        try {
+                            execute(message); // Sending our message object to user
+                        } catch (TelegramApiException e) {
+                            e.printStackTrace();
+                        }
+                } else {
 
-                KeyboardRow row1 = new KeyboardRow();
-                row1.add("1000 تومان");
-                row1.add("2000 تومان");
-                row1.add("5000 تومان");
-                keyboard.add(row1);
-
-                row1 = new KeyboardRow();
-                row1.add("10000 تومان");
-                row1.add("20000 تومان");
-                keyboard.add(row1);
-
-                replyKeyboardMarkup.setKeyboard(keyboard);
-                message.setReplyMarkup(replyKeyboardMarkup);
-                try {
-                    execute(message); // Sending our message object to user
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
                 }
-            } else if (message_text.equals("شارژ مستقیم")) {
-                SendMessage message = new SendMessage() // Create a message object object
-                        .setChatId(chat_id)
-                        .setText("لطفا مبلغ شارژ را انتخاب کنید:");
-                bill.setChrgType("شارژ مستقیم");
 
+            } else if (customers.cusList.get(i).getStep() == 3) {
+                if (i != -1) {
 
-                ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
-                List<KeyboardRow> keyboard = new ArrayList<>();
+                    customers.cusList.get(i).addStep();
+                    int billNum = customers.cusList.get(i).billList.size() - 1;
+                    int orderNum = customers.cusList.get(i).billList.get(billNum).orderList.size() - 1;
+                    customers.cusList.get(i).billList.get(billNum).orderList.get(orderNum).num
+                            = Integer.valueOf(message_text);
 
-                KeyboardRow row1 = new KeyboardRow();
-                row1.add("1000 تومان");
-                row1.add("2000 تومان");
-                row1.add("5000 تومان");
-                keyboard.add(row1);
+                    SendMessage message = new SendMessage() // Create a message object object
+                            .setChatId(chat_id);
+                    SendMessage message2 = new SendMessage() // Create a message object object
+                            .setChatId(chat_id);
+                    int j = 1;
+                    StringBuilder stringBuilder = new StringBuilder("فاکتور خرید:");
+                    stringBuilder.append("\n");
 
-                row1 = new KeyboardRow();
-                row1.add("10000 تومان");
-                row1.add("20000 تومان");
-                keyboard.add(row1);
+                    Customer c = customers.cusList.get(i);
+                    for (Order o : c.billList.get(billNum).orderList) {
+                        stringBuilder.append("\n")
+                                .append(j + "- ")
+                                .append(o.food.foodName)
+                                .append(" - قیمت:" + o.food.price)
+                                .append(" - تعداد:" + o.num);
+                        j++;
+                    }
+                    message.setText(stringBuilder.toString());
+                    message2.setText("میخوای به فاکتورت چیزی اضافه کنی؟");
 
-                replyKeyboardMarkup.setKeyboard(keyboard);
-                message.setReplyMarkup(replyKeyboardMarkup);
+                    ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+                    List<KeyboardRow> keyboard = new ArrayList<>();
 
-            } else if (message_text.equals("1000 تومان") || message_text.equals("2000 تومان") || message_text.equals("5000 تومان") || message_text.equals("10000 تومان") || message_text.equals("20000 تومان")) {
+                    KeyboardRow row1 = new KeyboardRow();
+                    row1.add("اره");
+                    row1.add("نه");
+                    keyboard.add(row1);
+
+                    replyKeyboardMarkup.setKeyboard(keyboard);
+                    message.setReplyMarkup(replyKeyboardMarkup);
+                    try {
+                        execute(message);
+                        execute(message2); // Sending our message object to user
+                    } catch (TelegramApiException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } else if (message_text.equals("اره") && customers.cusList.get(i).getStep() == 4) {
+                customers.cusList.get(i).setStep(2);
+                chooseFood(chat_id);
+            } else if (message_text.equals("نه") && step == 4) {
                 SendMessage msg = new SendMessage()
                         .setChatId(chat_id)
                         .setText("لطفا شماره موبایل را وارد کنید:");
-                bill.setPrice(message_text);
                 ReplyKeyboardRemove keyboardMarkup = new ReplyKeyboardRemove();
                 msg.setReplyMarkup(keyboardMarkup);
 
@@ -179,7 +178,7 @@ public class PhotoBot extends TelegramLongPollingBot {
             } else if (message_text.startsWith("09")) {
                 SendMessage msg = new SendMessage()
                         .setChatId(chat_id);
-                bill.setPhoneNum(message_text);
+                /*    bill.setPhoneNum(message_text);
                 StringBuilder stringBuilder = new StringBuilder("فاکتور خرید:");
                 stringBuilder.append("\n\n").append("اپراتور: ").append(bill.getOperator());
                 stringBuilder.append("\n").append("نوع شارژ: ").append(bill.getChrgType());
@@ -187,7 +186,7 @@ public class PhotoBot extends TelegramLongPollingBot {
                 stringBuilder.append("\n").append("شماره تلفن:").append(bill.getPhoneNum());
                 stringBuilder.append("\n\n آیا اطلاعات صحیح است؟");
                 msg.setText(stringBuilder.toString());
-
+                 */
                 ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
                 List<KeyboardRow> keyboardRows = new ArrayList();
 
@@ -213,10 +212,10 @@ public class PhotoBot extends TelegramLongPollingBot {
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
-            }else if (message_text.equals("تایید و خرید")) {
+            } else if (message_text.equals("تایید و خرید")) {
                 SendMessage msg = new SendMessage()
                         .setChatId(chat_id)
-                        .setText("token"+"به منظور پرداخت وجه روی لینک بزنید تا به صفحه بانک هدایت شوید");
+                        .setText("token" + "به منظور پرداخت وجه روی لینک بزنید تا به صفحه بانک هدایت شوید");
                 try {
                     sendMessage(msg); // Call method to send the photo
                 } catch (TelegramApiException e) {
@@ -274,5 +273,31 @@ public class PhotoBot extends TelegramLongPollingBot {
     public String getBotToken() {
         // Return bot token from BotFather
         return "475445507:AAHWqbA_sJcjy0-xVSmfhU0YKBJRLjuS0VE";
+    }
+
+    public void chooseFood(long chatId) {
+        SendMessage message = new SendMessage() // Create a message object object
+                .setChatId(chatId)
+                .setText("چه نوع پیتزایی دوست داری؟");
+
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        List<KeyboardRow> keyboard = new ArrayList<>();
+
+        KeyboardRow row1 = new KeyboardRow();
+        row1.add("پیتزا مخصوص لانیا(1نفره)");
+        keyboard.add(row1);
+
+        row1 = new KeyboardRow();
+        row1.add("پیتزا مخصوص لانیا(2نفره)");
+        keyboard.add(row1);
+
+        keyboardMarkup.setKeyboard(keyboard);
+        message.setReplyMarkup(keyboardMarkup);
+
+        try {
+            execute(message); // Sending our message object to user
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
     }
 }
