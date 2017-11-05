@@ -163,7 +163,8 @@ public class PizzaOrder extends TelegramLongPollingBot {
             } else if (message_text.equals("اره") && customers.cusList.get(i).getStep() == 4) {
                 customers.cusList.get(i).setStep(2);
                 chooseFood(chat_id);
-            } else if (message_text.equals("نه") && step == 4) {
+            } else if (message_text.equals("نه") && customers.cusList.get(i).getStep() == 4) {
+                customers.cusList.get(i).addStep();
                 SendMessage msg = new SendMessage()
                         .setChatId(chat_id)
                         .setText("لطفا شماره موبایل را وارد کنید:");
@@ -175,33 +176,38 @@ public class PizzaOrder extends TelegramLongPollingBot {
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
-            } else if (message_text.startsWith("09")) {
+            } else if (message_text.startsWith("09")&& customers.cusList.get(i).getStep() == 5) {
+                customers.cusList.get(i).addStep();
                 SendMessage msg = new SendMessage()
-                        .setChatId(chat_id);
-                /*    bill.setPhoneNum(message_text);
-                StringBuilder stringBuilder = new StringBuilder("فاکتور خرید:");
-                stringBuilder.append("\n\n").append("اپراتور: ").append(bill.getOperator());
-                stringBuilder.append("\n").append("نوع شارژ: ").append(bill.getChrgType());
-                stringBuilder.append("\n").append("مبلغ: ").append(bill.getPrice());
-                stringBuilder.append("\n").append("شماره تلفن:").append(bill.getPhoneNum());
-                stringBuilder.append("\n\n آیا اطلاعات صحیح است؟");
-                msg.setText(stringBuilder.toString());
-                 */
-                ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
-                List<KeyboardRow> keyboardRows = new ArrayList();
+                        .setChatId(chat_id)
+                        .setText("لطفا آدرس دریافت سفارشات را وارد کنید؟");
 
-                KeyboardRow row1 = new KeyboardRow();
-                row1.add("تایید و خرید");
-                row1.add("خیر و بازگشت");
-                keyboardRows.add(row1);
-                replyKeyboardMarkup.setKeyboard(keyboardRows);
-                msg.setReplyMarkup(replyKeyboardMarkup);
+                customers.cusList.get(i).setPhone(message_text);
+                
                 try {
                     sendMessage(msg); // Call method to send the photo
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
-            } else if (message_text.equals("/hide")) {
+            } else if (customers.cusList.get(i).getStep() == 6) {
+                customers.cusList.get(i).addStep();
+                SendMessage msg = new SendMessage()
+                        .setChatId(chat_id)
+                        .setText("آیا مشخصات صحیح است؟");
+
+                customers.cusList.get(i).setAddress(message_text);
+                
+                StringBuilder stringBuilder = new StringBuilder("قبل از آماده سازی سفارش با شما تماس گرفته می شود");
+                    stringBuilder.append("\n\n").append("شماره همراه:")
+                            .append(customers.cusList.get(i).getPhone());
+                
+                
+                try {
+                    sendMessage(msg); // Call method to send the photo
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            }else if (message_text.equals("/hide")) {
                 SendMessage msg = new SendMessage()
                         .setChatId(chat_id)
                         .setText("Keyboard hidden");

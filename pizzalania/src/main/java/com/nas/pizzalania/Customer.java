@@ -11,6 +11,8 @@ public class Customer {
     ArrayList<Bill> billList = new ArrayList<Bill>();
     private long chat_id=0;
     private int step;
+    private String phone;
+    private String address;
 
     public ArrayList<Bill> getBillList() {
         return billList;
@@ -39,4 +41,22 @@ public class Customer {
     public void addStep() {
         this.step++;
     }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+    
+    
 }
