@@ -1,269 +1,175 @@
 package com.nas.pizzalania;
 
+import static java.lang.Math.toIntExact;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.api.objects.PhotoSize;
+import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.api.objects.Update;
+import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardRemove;
+import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 
 public class PizzaOrder extends TelegramLongPollingBot {
 
-    private Customers customers = Customers.getCusInstance();
+    Customers customers = Customers.getCusInstance();
 
     @Override
     public void onUpdateReceived(Update update) {
-        int step = 0;
+
         // We check if the update has a message and the message has text
         if (update.hasMessage() && update.getMessage().hasText()) {
             // Set variables
             String message_text = update.getMessage().getText();
             long chat_id = update.getMessage().getChatId();
-            int i = customers.isCusExist(chat_id);
-
             if (message_text.equals("/start")) {
-                SendMessage message = new SendMessage() // Create a message object object
-                        .setChatId(chat_id)
-                        .setText("به ربات پیتزا تنوری لانیا خوش آمدید");
-                if (i != -1) {
-
+                if (customers.isCustomer(chat_id)) {
+                    sendMessage(chat_id, "به پیتزا تنوری لانیا خوش آمدید");
+                    log("farshad", "faramarzlou", "00", "Start state 1", "Customer Size: " + customers.getCusList().size());
+                    goToMain(chat_id);
+                } else if (customers.isCusExist(chat_id)) {
+                    sendMessage(chat_id, "به پیتزا تنوری لانیا خوش آمدید");
+                    log("farshad", "faramarzlou", "00", "Start state 2", "Customer Size: " + customers.getCusList().size());
+                    goToMain(chat_id);
                 } else {
-                    //initual a new customer
-                    Customer cus = new Customer();
-                    cus.setChat_id(chat_id);
-                    cus.setStep(1);
-                    customers.cusList.add(cus);
-                    System.out.println(chat_id);
-                }
-
-                ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
-                List<KeyboardRow> keyboard = new ArrayList<>();
-
-                KeyboardRow row1 = new KeyboardRow();
-                row1.add("سفارش پیتزا");
-                keyboard.add(row1);
-
-                row1 = new KeyboardRow();
-                row1.add("تکرار آخرین خرید");
-                keyboard.add(row1);
-
-                row1 = new KeyboardRow();
-                row1.add("درباره من");
-                keyboard.add(row1);
-
-                row1 = new KeyboardRow();
-                row1.add("پشتیبانی");
-                keyboard.add(row1);
-
-                keyboardMarkup.setKeyboard(keyboard);
-                message.setReplyMarkup(keyboardMarkup);
-
-                try {
-                    execute(message); // Sending our message object to user
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
-            } else if (message_text.equals("سفارش پیتزا") && customers.cusList.get(i).getStep() == 1) {
-                if (i != -1) {
-                    customers.cusList.get(i).addStep();
-                    chooseFood(chat_id);
-                    System.out.println(chat_id + "  " + "مشتری سفارش دارد");
-                } else {
-                    SendMessage message = new SendMessage() // Create a message object object
-                            .setChatId(chat_id)
-                            .setText("فرآیند خرید را مجدد اجرا کنید!");
-                }
-            } else if (customers.cusList.get(i).getStep() == 2) {
-                 customers.cusList.get(i).addStep();
-
-                if (i != -1) {
-                    if (customers.cusList.get(i).billList.isEmpty()) {
-                        Bill bill = new Bill();
-                        Order order = new Order();
-                        Food food = new Food();
-                        food.setFoodName(message_text);
-                        order.food = food;
-                        bill.orderList.add(order);
-                        customers.cusList.get(i).billList.add(bill);
+                    Customer cus = new Customer(chat_id);
+                    if (customers.newCustomer(cus)) {
+                        customers.addCustumerToList(cus);
+                        sendMessage(chat_id, "به پیتزا تنوری لانیا خوش آمدید");
+                        log("farshad", "faramarzlou", "00", "Start state 3", "Customer Size: " + customers.getCusList().size());
+                        goToMain(chat_id);
                     } else {
-                        Order order = new Order();
-                        Food food = new Food();
-                        food.setFoodName(message_text);
-                        order.food = food;
-                        int billNum = customers.cusList.get(i).billList.size()-1;
-                        customers.cusList.get(i).billList.get(billNum).orderList.add(order);
+                        sendMessage(chat_id, "خطایی در ثبت نام رخ داده است!");
+                        log("farshad", "faramarzlou", "00", "Start state 4", "Customer Size: " + customers.getCusList().size());
                     }
-                    SendMessage message = new SendMessage() // Create a message object object
-                                .setChatId(chat_id)
-                                .setText("چند تا پیتزا میخوای؟");
-
-                        ReplyKeyboardRemove keyboardMarkup = new ReplyKeyboardRemove();
-                        message.setReplyMarkup(keyboardMarkup);
-                        try {
-                            execute(message); // Sending our message object to user
-                        } catch (TelegramApiException e) {
-                            e.printStackTrace();
-                        }
-                } else {
 
                 }
 
-            } else if (customers.cusList.get(i).getStep() == 3) {
-                if (i != -1) {
-
-                    customers.cusList.get(i).addStep();
-                    int billNum = customers.cusList.get(i).billList.size() - 1;
-                    int orderNum = customers.cusList.get(i).billList.get(billNum).orderList.size() - 1;
-                    customers.cusList.get(i).billList.get(billNum).orderList.get(orderNum).num
-                            = Integer.valueOf(message_text);
-
-                    SendMessage message = new SendMessage() // Create a message object object
-                            .setChatId(chat_id);
-                    SendMessage message2 = new SendMessage() // Create a message object object
-                            .setChatId(chat_id);
-                    int j = 1;
-                    StringBuilder stringBuilder = new StringBuilder("فاکتور خرید:");
-                    stringBuilder.append("\n");
-
-                    Customer c = customers.cusList.get(i);
-                    for (Order o : c.billList.get(billNum).orderList) {
-                        stringBuilder.append("\n")
-                                .append(j + "- ")
-                                .append(o.food.foodName)
-                                .append(" - قیمت:" + o.food.price)
-                                .append(" - تعداد:" + o.num);
-                        j++;
-                    }
-                    message.setText(stringBuilder.toString());
-                    message2.setText("میخوای به فاکتورت چیزی اضافه کنی؟");
-
-                    ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+            } else if (message_text.equals(Constants.ORDER)) {
+                if (!customers.isCustomer(chat_id)) {
+                    sendMessage(chat_id, "لطفا دوباره وارد شوید");
+                } else {
                     List<KeyboardRow> keyboard = new ArrayList<>();
-
                     KeyboardRow row1 = new KeyboardRow();
-                    row1.add("اره");
-                    row1.add("نه");
+                    row1.add(Constants.PIZZA);
                     keyboard.add(row1);
 
-                    replyKeyboardMarkup.setKeyboard(keyboard);
-                    message.setReplyMarkup(replyKeyboardMarkup);
-                    try {
-                        execute(message);
-                        execute(message2); // Sending our message object to user
-                    } catch (TelegramApiException e) {
-                        e.printStackTrace();
+                    row1 = new KeyboardRow();
+                    row1.add(Constants.DRINK);
+                    row1.add(Constants.SALAD);
+                    keyboard.add(row1);
+
+                    row1 = new KeyboardRow();
+                    row1.add(Constants.FINISHORDER);
+                    row1.add(Constants.BACK);
+                    keyboard.add(row1);
+
+                    sendMessageKB(chat_id, "لطفا یکی از گزینه ها را انتخاب کنید:", keyboard);
+                    log("farshad", "faramarzlou", "000", message_text, "Print test");
+                }
+
+            } else if (message_text.equals(Constants.PIZZA)) {
+                boolean flag = false;
+                for (Customer c : customers.getCusList()) {
+                    if (c.getChat_id() == chat_id) {
+                        showFood(chat_id);
+                        flag = true;
                     }
                 }
-            } else if (message_text.equals("اره") && customers.cusList.get(i).getStep() == 4) {
-                customers.cusList.get(i).setStep(2);
-                chooseFood(chat_id);
-            } else if (message_text.equals("نه") && customers.cusList.get(i).getStep() == 4) {
-                customers.cusList.get(i).addStep();
+                if (!flag) {
+                    sendMessage(chat_id, "لطفا دوباره وارد شوید!");
+                }
+
+            } else if (message_text.equals("--")) {
+
+            } else if (message_text.equals(Constants.SHOPPINGBASKET)) {
+                showBasket(chat_id);
+            } else if (message_text.equals("اره")) {
+                showFood(chat_id);
+            } else if (message_text.equals("نه")) {
                 SendMessage msg = new SendMessage()
                         .setChatId(chat_id)
                         .setText("لطفا شماره موبایل را وارد کنید:");
                 ReplyKeyboardRemove keyboardMarkup = new ReplyKeyboardRemove();
                 msg.setReplyMarkup(keyboardMarkup);
 
-                try {
-                    sendMessage(msg); // Call method to send the photo
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
-            } else if (message_text.startsWith("09")&& customers.cusList.get(i).getStep() == 5) {
-                customers.cusList.get(i).addStep();
+            } else if (message_text.startsWith("09")) {
                 SendMessage msg = new SendMessage()
                         .setChatId(chat_id)
                         .setText("لطفا آدرس دریافت سفارشات را وارد کنید؟");
 
-                customers.cusList.get(i).setPhone(message_text);
-                
-                try {
-                    sendMessage(msg); // Call method to send the photo
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
-            } else if (customers.cusList.get(i).getStep() == 6) {
-                customers.cusList.get(i).addStep();
+            } else if (customers.getCustumerFromList(chat_id).getStep() == 6) {
                 SendMessage msg = new SendMessage()
                         .setChatId(chat_id)
                         .setText("آیا مشخصات صحیح است؟");
 
-                customers.cusList.get(i).setAddress(message_text);
-                
-                StringBuilder stringBuilder = new StringBuilder("قبل از آماده سازی سفارش با شما تماس گرفته می شود");
-                    stringBuilder.append("\n\n").append("شماره همراه:")
-                            .append(customers.cusList.get(i).getPhone());
-                
-                
-                try {
-                    sendMessage(msg); // Call method to send the photo
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
-            }else if (message_text.equals("/hide")) {
+
+                /* StringBuilder stringBuilder = new StringBuilder("قبل از آماده سازی سفارش با شما تماس گرفته می شود");
+                stringBuilder.append("\n\n").append("شماره همراه:")
+                        .append(customers.cusList.get(i).getPhone());
+                 */
+            } else if (message_text.equals("/hide")) {
                 SendMessage msg = new SendMessage()
                         .setChatId(chat_id)
                         .setText("Keyboard hidden");
                 ReplyKeyboardRemove keyboardMarkup = new ReplyKeyboardRemove();
                 msg.setReplyMarkup(keyboardMarkup);
-                try {
-                    sendMessage(msg); // Call method to send the photo
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
-            } else if (message_text.equals("تایید و خرید")) {
-                SendMessage msg = new SendMessage()
-                        .setChatId(chat_id)
-                        .setText("token" + "به منظور پرداخت وجه روی لینک بزنید تا به صفحه بانک هدایت شوید");
-                try {
-                    sendMessage(msg); // Call method to send the photo
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                SendMessage message = new SendMessage() // Create a message object object
-                        .setChatId(chat_id)
-                        .setText("Unknown command");
-                try {
-                    execute(message); // Sending our message object to user
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
-            }
-        } else if (update.hasMessage() && update.getMessage().hasPhoto()) {
-            // Message contains photo
-            // Set variables
-            long chat_id = update.getMessage().getChatId();
 
-            List<PhotoSize> photos = update.getMessage().getPhoto();
-            String f_id = photos.stream()
-                    .sorted(Comparator.comparing(PhotoSize::getFileSize).reversed())
-                    .findFirst()
-                    .orElse(null).getFileId();
-            int f_width = photos.stream()
-                    .sorted(Comparator.comparing(PhotoSize::getFileSize).reversed())
-                    .findFirst()
-                    .orElse(null).getWidth();
-            int f_height = photos.stream()
-                    .sorted(Comparator.comparing(PhotoSize::getFileSize).reversed())
-                    .findFirst()
-                    .orElse(null).getHeight();
-            String caption = "file_id: " + f_id + "\nwidth: " + Integer.toString(f_width) + "\nheight: " + Integer.toString(f_height);
-            SendPhoto msg = new SendPhoto()
-                    .setChatId(chat_id)
-                    .setPhoto(f_id)
-                    .setCaption(caption);
-            try {
-                sendPhoto(msg); // Call method to send the message
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
+            } else if (message_text.equals(Constants.BACK)) {
+                goToMain(chat_id);
+            } else {
+                sendMessage(chat_id, "Unknown command");
+            }
+        } else if (update.hasCallbackQuery()) {
+            // Set variables
+            String call_data = update.getCallbackQuery().getData();
+            long message_id = update.getCallbackQuery().getMessage().getMessageId();
+            long chat_id = update.getCallbackQuery().getMessage().getChatId();
+            if (call_data.startsWith("food")) {
+                selectFood(chat_id, call_data);
+                String answer = "پیتزا ثبت شد";
+                EditMessageText new_message = new EditMessageText()
+                        .setChatId(chat_id)
+                        .setMessageId(toIntExact(message_id))
+                        .setText(answer);
+                showNumber(chat_id);
+
+                try {
+                    execute(new_message);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+
+            } else if (call_data.startsWith("num")) {
+                selectNumber(chat_id, call_data);
+                String answer = "تعداد: " + call_data.replaceFirst("num", "");
+                EditMessageText new_message = new EditMessageText()
+                        .setChatId(chat_id)
+                        .setMessageId(toIntExact(message_id))
+                        .setText(answer);
+                try {
+                    execute(new_message);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+                /*List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+                List<InlineKeyboardButton> rowInline1 = new ArrayList<>();
+                rowInline1.add(new InlineKeyboardButton().setText("بله").setCallbackData("chooseyes"));
+                rowInline1.add(new InlineKeyboardButton().setText("خیر").setCallbackData("chooseno"));
+                rowsInline.add(rowInline1);
+                sendMessageIKB(chat_id, "انتخاب دیگری دارید؟", rowsInline);*/
+            } else if (call_data.startsWith("choose")) {
+
             }
         }
     }
@@ -281,29 +187,205 @@ public class PizzaOrder extends TelegramLongPollingBot {
         return "475445507:AAHWqbA_sJcjy0-xVSmfhU0YKBJRLjuS0VE";
     }
 
-    public void chooseFood(long chatId) {
-        SendMessage message = new SendMessage() // Create a message object object
-                .setChatId(chatId)
-                .setText("چه نوع پیتزایی دوست داری؟");
+    public void showBasket(long chat_id) {
+        for (Customer c : customers.getCusList()) {
+            if (c.getChat_id() == chat_id) {
+                if (c.getBasket().getOrderItems().isEmpty()) {
+                    sendMessage(chat_id, "سبد خالی است!");
+                } else {
+                    int j = 1;
+                    StringBuilder stringBuilder = new StringBuilder("سبد خرید:");
+                    stringBuilder.append("\n");
 
-        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
-        List<KeyboardRow> keyboard = new ArrayList<>();
+                    for (OrderItem o : c.getBasket().getOrderItems()) {
+                        stringBuilder.append("\n").append(j)
+                                .append("- ")
+                                .append(o.getEatable().getName())
+                                .append(" - قیمت:")
+                                .append(o.getEatable().getPrice())
+                                .append(" - تعداد:")
+                                .append(o.getNum());
+                        j++;
+                    }
+                    sendMessage(chat_id, stringBuilder.toString());
+                }
+            }
+        }
 
-        KeyboardRow row1 = new KeyboardRow();
-        row1.add("پیتزا مخصوص لانیا(1نفره)");
-        keyboard.add(row1);
+    }
 
-        row1 = new KeyboardRow();
-        row1.add("پیتزا مخصوص لانیا(2نفره)");
-        keyboard.add(row1);
+    public void selectFood(long chatId, String foodId) {
+        for (Customer c : customers.getCusList()) {
+            if (c.getChat_id() == chatId) {
+                int id = Integer.valueOf(foodId.replaceFirst("food", ""));
+                c.getBasket().selectEatable(id);
+            }
+        }
+    }
 
-        keyboardMarkup.setKeyboard(keyboard);
-        message.setReplyMarkup(keyboardMarkup);
+    public void selectNumber(long chatId, String num) {
+        for (Customer c : customers.getCusList()) {
+            if (c.getChat_id() == chatId) {
+                int n = Integer.valueOf(num.replaceFirst("num", ""));
+                c.getBasket().selectNum(n);
+            }
+        }
+    }
+
+    public void showNumber(long chatId) {
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        //row 1
+        List<InlineKeyboardButton> rowInline1 = new ArrayList<>();
+        rowInline1.add(new InlineKeyboardButton().setText("1").setCallbackData("num1"));
+        rowInline1.add(new InlineKeyboardButton().setText("2").setCallbackData("num2"));
+        rowInline1.add(new InlineKeyboardButton().setText("3").setCallbackData("num3"));
+        rowInline1.add(new InlineKeyboardButton().setText("4").setCallbackData("num4"));
+        rowsInline.add(rowInline1);
+        //row 2
+        List<InlineKeyboardButton> rowInline2 = new ArrayList<>();
+        rowInline2.add(new InlineKeyboardButton().setText("5").setCallbackData("num5"));
+        rowInline2.add(new InlineKeyboardButton().setText("6").setCallbackData("num6"));
+        rowInline2.add(new InlineKeyboardButton().setText("7").setCallbackData("num7"));
+        rowInline2.add(new InlineKeyboardButton().setText("8").setCallbackData("num8"));
+        rowsInline.add(rowInline2);
+        //row 3
+        List<InlineKeyboardButton> rowInline3 = new ArrayList<>();
+        rowInline3.add(new InlineKeyboardButton().setText("9").setCallbackData("num9"));
+        rowInline3.add(new InlineKeyboardButton().setText("10").setCallbackData("num10"));
+        rowInline3.add(new InlineKeyboardButton().setText("11").setCallbackData("num11"));
+        rowInline3.add(new InlineKeyboardButton().setText("12").setCallbackData("num12"));
+        rowsInline.add(rowInline3);
+        // Add it to the message
+        sendMessageIKB(chatId, "لطفا تعداد پیتزا را انتخاب کنید:", rowsInline);
+    }
+
+    /*
+    public void showOrderItem(long chatId) {
+        StringBuilder stringBuilder = new StringBuilder("تعداد ");
+        for (Customer c : customers.getCusList()) {
+            if (c.getChat_id() == chatId) {
+                if (c.getBasket().getOrderItems().isEmpty()) {
+
+                } else {
+                    int billListSize = c.getBillList().size() - 1;
+                    int orderSize = c.getBillList().get(billListSize).getOrderItems().size() - 1;
+                    stringBuilder.append(c.getBillList().get(billListSize).getOrderItems().get(orderSize).num + " تا ");
+                    stringBuilder.append(c.getBillList().get(billListSize).getOrderItems().get(orderSize).eatable.Name + " انتخاب شد.\nبرای ثبت نهایی دکمه زیر را فشار دهید ");
+
+                }
+            }
+        }
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        //row 1
+        List<InlineKeyboardButton> rowInline1 = new ArrayList<>();
+        rowInline1.add(new InlineKeyboardButton().setText("1").setCallbackData("num1"));
+        rowInline1.add(new InlineKeyboardButton().setText("2").setCallbackData("num2"));
+        rowInline1.add(new InlineKeyboardButton().setText("3").setCallbackData("num3"));
+        rowInline1.add(new InlineKeyboardButton().setText("4").setCallbackData("num4"));
+        rowsInline.add(rowInline1);
+
+        // Add it to the message
+        sendMessageIKB(chatId, "???? ????? ????? ?? ?????? ????:", rowsInline);
+    }
+     */
+    public void showFood(long chatId) {
+        ArrayList<Eatable> foodList;
+        SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Eatable.class
+        ).buildSessionFactory();
+        Session session = factory.getCurrentSession();
+
+        try {
+            session.beginTransaction();
+            foodList = (ArrayList<Eatable>) session.createQuery("from Eatable where type =:type ").setParameter("type", "1").list();
+            session.getTransaction().commit();
+
+        } finally {
+            factory.close();
+        }
+
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        for (Eatable e : foodList) {
+            List<InlineKeyboardButton> rowInline = new ArrayList<>();
+            rowInline.add(new InlineKeyboardButton().setText(e.getName() + "   قیمت:" + e.getPrice()).setCallbackData("food" + e.getId()));
+            // Set the keyboard to the markup
+            rowsInline.add(rowInline);
+        }
+        // Add it to the message
+        sendMessageIKB(chatId, "چه نوع غذایی دوس داری؟", rowsInline);
+    }
+
+    public void sendMessageIKB(long chat_id, String textMessage, List<List<InlineKeyboardButton>> inlineKeyboard) {
+        SendMessage message = new SendMessage()
+                .setChatId(chat_id)
+                .setText(textMessage);
+
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup()
+                .setKeyboard(inlineKeyboard);
+        message.setReplyMarkup(markupInline);
+        try {
+            execute(message); // Sending our message object to user
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendMessageKB(long chat_id, String textMessage, List<KeyboardRow> keyboardButton) {
+        SendMessage message = new SendMessage()
+                .setChatId(chat_id)
+                .setText(textMessage);
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup()
+                .setKeyboard(keyboardButton);
+        message.setReplyMarkup(replyKeyboardMarkup);
 
         try {
             execute(message); // Sending our message object to user
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
+    }
+
+    public void sendMessage(Long chat_id, String textMessage) {
+        SendMessage message = new SendMessage() // Create a message object object
+                .setChatId(chat_id)
+                .setText(textMessage);
+        try {
+            execute(message); // Sending our message object to user
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void goToMain(long chat_id) {
+        List<KeyboardRow> keyboard = new ArrayList<>();
+
+        KeyboardRow row1 = new KeyboardRow();
+        row1.add(Constants.SHOPPINGBASKET);
+        keyboard.add(row1);
+
+        row1 = new KeyboardRow();
+        row1.add(Constants.LANIAMENU);
+        row1.add(Constants.ORDER);
+        keyboard.add(row1);
+
+        row1 = new KeyboardRow();
+        row1.add(Constants.FOLLOWORDER);
+        row1.add(Constants.REBATE);
+        keyboard.add(row1);
+
+        row1 = new KeyboardRow();
+        row1.add(Constants.SUPPORT);
+        keyboard.add(row1);
+
+        sendMessageKB(chat_id, "منوی اصلی", keyboard);
+
+    }
+
+    private void log(String first_name, String last_name, String user_id, String txt, String bot_answer) {
+        System.out.println("\n ----------------------------");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Date date = new Date();
+        System.out.println(dateFormat.format(date));
+        System.out.println("Message from " + first_name + " " + last_name + ". (id = " + user_id + ") \n Text - " + txt);
+        System.out.println("Bot answer: \n Text - " + bot_answer);
     }
 }

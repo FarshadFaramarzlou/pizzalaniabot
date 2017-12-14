@@ -9,8 +9,11 @@ package com.nas.pizzalania;
  *
  * @author Farshad
  */
-public class Order {
-    Food food;
-    int num =0;
-    
+public class Drink extends Eatable{
+    public String type = "2";
+
+    public Drink() {
+        super();
+        this.type = "2";
+    }
 }
