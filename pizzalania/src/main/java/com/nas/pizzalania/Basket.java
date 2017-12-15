@@ -2,22 +2,38 @@ package com.nas.pizzalania;
 
 import java.util.ArrayList;
 import java.util.Date;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.Transient;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
+@Entity
+@Table(name = "basket")
 public class Basket {
 
+    @Transient
     private ArrayList<OrderItem> orderItems;
-
+    @Id
+    @Column(name = "id")
     private int id;
+    @Column(name = "date")
+    @Temporal(javax.persistence.TemporalType.DATE)
     private Date date;
     //tahvilType p:peyk -- h:hozoori
+    @Column(name = "tahvilType")
     private String tahvilType = "p";
     //payType n:interneti -- p:tahvilPeyk -- h:hozoori
+    @Column(name = "payType")
     private String payType = "p";
     //private DoDate doDate;
+    @Column(name = "moneySum")
     private double moneySum;
+    @Column(name = "rebateSum")
     private double rebateSum;
 
     public Basket() {

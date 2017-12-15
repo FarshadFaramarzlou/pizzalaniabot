@@ -70,7 +70,24 @@ public class Eatable {
         this.Des = Des;
     }
 
-    public static Eatable getFoodFromDb(int eatableId) {
+    public static ArrayList<Eatable> getEatableFromDbByType(int type){
+        ArrayList<Eatable> found;
+        SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Eatable.class
+        ).buildSessionFactory();
+        Session session = factory.getCurrentSession();
+
+        try {
+            session.beginTransaction();
+            found = (ArrayList<Eatable>) session.createQuery("from Eatable where type =:type ").setParameter("type", type).list();
+            session.getTransaction().commit();
+
+        } finally {
+            factory.close();
+        }
+        return found;
+    }
+    
+    public static Eatable getFoodFromDbById(int eatableId) {
         SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Eatable.class).buildSessionFactory();
         Session session = factory.getCurrentSession();
         ArrayList<Eatable> found;

@@ -40,7 +40,7 @@ public class OrderItem {
     
     public void selectEatable(int eatableId){
         System.out.println(eatableId);
-         this.eatable = Eatable.getFoodFromDb(eatableId);
+         this.eatable = Eatable.getFoodFromDbById(eatableId);
     }
     
 }

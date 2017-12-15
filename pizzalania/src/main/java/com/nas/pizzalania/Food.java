@@ -9,4 +9,5 @@ public class Food extends Eatable {
         super();
         this.type = "1";
     }
+    
 }

@@ -22,8 +22,6 @@ public class Customer {
     private int customer_id;
     @Column(name = "chat_id")
     private long chat_id;
-    @Transient
-    private int step;
     @Column(name = "first_name")
     private String fName = "";
     @Column(name = "last_name")
@@ -34,12 +32,12 @@ public class Customer {
     private String address = "";
     @Column(name = "rPhone")
     private String rPhone = "";
+    @Column(name = "p_is_c")
+    private int p_is_c;
 
     public Customer() {
     }
 
-    
-    
     public Customer(long chat_id) {
         this.chat_id = chat_id;
     }
@@ -52,7 +50,6 @@ public class Customer {
         this.basket = basket;
     }
 
-
     public long getChat_id() {
         return chat_id;
     }
@@ -61,16 +58,12 @@ public class Customer {
         this.chat_id = chat_id;
     }
 
-    public int getStep() {
-        return step;
+    public int getP_is_c() {
+        return p_is_c;
     }
 
-    public void setStep(int step) {
-        this.step = step;
-    }
-
-    public void addStep() {
-        this.step++;
+    public void setP_is_c(int p_is_c) {
+        this.p_is_c = p_is_c;
     }
 
     public String getPhone() {
