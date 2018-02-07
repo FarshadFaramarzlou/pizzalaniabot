@@ -24,7 +24,7 @@ public class Eatable {
     private String Des;
     @Column(name = "type")
     private String type;
-
+    
     public Eatable() {
 
     }
@@ -87,7 +87,7 @@ public class Eatable {
         return found;
     }
     
-    public static Eatable getFoodFromDbById(int eatableId) {
+    public static Eatable getFoodFromDbById(String eatableId) {
         SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Eatable.class).buildSessionFactory();
         Session session = factory.getCurrentSession();
         ArrayList<Eatable> found;
@@ -100,10 +100,14 @@ public class Eatable {
             factory.close();
         }
         if (found.isEmpty()) {
-            System.out.println("Null printed");
             return null;
         } else {
             return found.get(0);
         }
     }
+    
+    
+    
+
+    
 }

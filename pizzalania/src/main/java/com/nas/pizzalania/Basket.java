@@ -1,11 +1,8 @@
 package com.nas.pizzalania;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -15,6 +12,7 @@ import javax.persistence.Transient;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
+import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
 
 @Entity
@@ -41,6 +39,8 @@ public class Basket {
     @Column(name = "rebateSum")
     private double rebateSum;
     @Transient
+    private List<List<InlineKeyboardButton>> rowsInline = null;
+    @Transient
     private ArrayList<KeyboardRow> keyboard = null;
     @Transient
     private StringBuilder stringBuilder = null;
@@ -50,9 +50,7 @@ public class Basket {
     }
 
     public void sumItemMoney() {
-
         this.moneySum = 0;
-
     }
 
     public void sumItemRebate() {
@@ -79,6 +77,10 @@ public class Basket {
 
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    public void emptyBasket() {
+        this.orderItems = new ArrayList<>();
     }
 
     public String getTahvilType() {
@@ -113,6 +115,18 @@ public class Basket {
         this.rebateSum = rebateSum;
     }
 
+    public void setOrderItems(ArrayList<OrderItem> orderItems) {
+        this.orderItems = orderItems;
+    }
+
+    public List<List<InlineKeyboardButton>> getRowsInline() {
+        return rowsInline;
+    }
+
+    public void setRowsInline(List<List<InlineKeyboardButton>> rowsInline) {
+        this.rowsInline = rowsInline;
+    }
+
     public ArrayList<KeyboardRow> getKeyboard() {
         return keyboard;
     }
@@ -142,18 +156,47 @@ public class Basket {
         return true;
     }
 
-    public void selectEatable(int eatableId) {
+    public void selectFood(String eatableId, String type) {
+        String id = eatableId.replaceFirst(type, "");
         OrderItem oi = new OrderItem();
-        oi.selectEatable(eatableId);
-        this.orderItems.add(oi);
+        oi.selectEatable(id);
+        if (orderItems.isEmpty()) {
+            this.orderItems.add(oi);
+        } else {
+            int flag = 0;
+            int index = -1;
+            for (OrderItem o : getOrderItems()) {
+                index++;
+                if (o.getEatable().getId().equals(id)) {
+                    flag = 1;
+                    break;
+                }
+            }
+
+            if (flag == 0) {
+                this.orderItems.add(oi);
+            } else if (flag == 1) {
+                orderItems.remove(index);
+                this.orderItems.add(oi);
+            }
+        }
     }
 
-    public void selectNum(int num) {
+    public void selectNumber(String num) {
+        int n = Integer.valueOf(num.replaceFirst("num", ""));
         int oiSize = orderItems.size() - 1;
-        this.orderItems.get(oiSize).setNum(num);
+        this.orderItems.get(oiSize).setNum(n);
     }
 
     public void showBasket(long chat_id) {
+        
+            int i = -1;
+            i = getOrderItems().size()-1;
+            for (;i >=0;i--) {
+                if (getOrderItems().get(i).getNum() == 0) {
+                    orderItems.remove(i);
+                }
+            }
         if (getOrderItems().isEmpty()) {
             keyboard = new ArrayList<KeyboardRow>();
             KeyboardRow row1 = new KeyboardRow();
@@ -199,9 +242,44 @@ public class Basket {
                         .append(o.getEatable().getPrice())
                         .append(" - تعداد:")
                         .append(o.getNum());
+                moneySum = +o.getNum() * o.getEatable().getPrice();
                 j++;
             }
+
+            stringBuilder.append("\n\n");
+            stringBuilder.append(String.valueOf("مبلغ کل خرید: " + moneySum));
+
         }
 
+    }
+
+    public void showFood(int type) {
+        String price = "قیمت:  ";
+        String eatType = "";
+        switch (type) {
+            case 1:
+                eatType = "food";
+                stringBuilder = new StringBuilder("منوی پیتزا:\n");
+                break;
+            case 2:
+                eatType = "drink";
+                stringBuilder = new StringBuilder("منوی نوشیدنی:\n");
+                break;
+            case 3:
+                eatType = "salad";
+                stringBuilder = new StringBuilder("منوی سالاد:\n");
+                break;
+            default:
+                break;
+        }
+        ArrayList<Eatable> foodList = Eatable.getEatableFromDbByType(type);
+
+        rowsInline = new ArrayList<>();
+        for (Eatable e : foodList) {
+            List<InlineKeyboardButton> rowInline = new ArrayList<>();
+            rowInline.add(new InlineKeyboardButton().setText(e.getName() + price + e.getPrice()).setCallbackData(eatType + e.getId()));
+            // Set the keyboard to the markup
+            rowsInline.add(rowInline);
+        }
     }
 }

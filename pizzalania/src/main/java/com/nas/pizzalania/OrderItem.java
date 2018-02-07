@@ -38,8 +38,7 @@ public class OrderItem {
     }
 
     
-    public void selectEatable(int eatableId){
-        System.out.println(eatableId);
+    public void selectEatable(String eatableId){
          this.eatable = Eatable.getFoodFromDbById(eatableId);
     }
     

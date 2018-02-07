@@ -49,5 +49,6 @@ public class Constants {
     final static String EMPTYBASKET = "خالی کردن سبد";
     final static String FINISHBASKET = "تاثید سبد و تکمیل خرید";
     final static String ADDTOBASKET = "افزودن به سبد";
+    final static String CONTINUE = "";
 
 }

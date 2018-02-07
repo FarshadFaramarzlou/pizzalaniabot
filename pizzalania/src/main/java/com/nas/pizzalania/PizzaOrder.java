@@ -60,6 +60,7 @@ public class PizzaOrder extends TelegramLongPollingBot {
                     }
 
                 }
+
             }
 
             for (Customer c : customers.getCusList()) {
@@ -67,7 +68,7 @@ public class PizzaOrder extends TelegramLongPollingBot {
                     if (c.getChatState() == 0 && !update.hasCallbackQuery()) {
 
                         System.out.println("normall");
-                        if (message_text.equals(Constants.ORDER)||message_text.equals(Constants.ADDTOBASKET)) {
+                        if (message_text.equals(Constants.ORDER) || message_text.equals(Constants.ADDTOBASKET)) {
                             if (!customers.isCustomer(chat_id)) {
                                 sendMessage(chat_id, "لطفا دوباره وارد شوید");
                             } else {
@@ -91,54 +92,45 @@ public class PizzaOrder extends TelegramLongPollingBot {
                             }
 
                         } else if (message_text.equals(Constants.PIZZA)) {
-                            boolean flag = false;
-                            showFood(chat_id, 1);
-                            flag = true;
-
-                            if (!flag) {
-                                sendMessage(chat_id, Constants.ENTERAGAIN);
-                            }
-
+                            c.getBasket().showFood(1);
+                            sendMessageIKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getRowsInline());
                         } else if (message_text.equals(Constants.DRINK)) {
-                            boolean flag = false;
-
-                            showFood(chat_id, 2);
-                            flag = true;
-
-                            if (!flag) {
-                                sendMessage(chat_id, Constants.ENTERAGAIN);
-                            }
+                            c.getBasket().showFood(2);
+                            sendMessageIKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getRowsInline());
 
                         } else if (message_text.equals(Constants.SALAD)) {
-                            boolean flag = false;
-
-                            showFood(chat_id, 3);
-                            flag = true;
-
-                            if (!flag) {
-                                sendMessage(chat_id, Constants.ENTERAGAIN);
-                            }
+                            c.getBasket().showFood(3);
+                            sendMessageIKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getRowsInline());
 
                         } else if (message_text.equals(Constants.LANIAMENU)) {
-                            showFood(chat_id, 1);
-                            showFood(chat_id, 2);
-                            showFood(chat_id, 3);
+                            c.getBasket().showFood(1);
+                            sendMessageIKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getRowsInline());
+                            c.getBasket().showFood(2);
+                            sendMessageIKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getRowsInline());
+                            c.getBasket().showFood(3);
+                            sendMessageIKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getRowsInline());
 
                         } else if (message_text.equals("--")) {
 
                         } else if (message_text.equals(Constants.SHOPPINGBASKET)) {
                             c.getBasket().showBasket(chat_id);
-                            sendMessageKB(chat_id,c.getBasket().getStringBuilder().toString() , c.getBasket().getKeyboard());
+                            sendMessageKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getKeyboard());
 
                         } else if (message_text.equals(Constants.ACCOUNT)) {
-                            sendMessage(chat_id, c.showAccountInfo());
-                            sendMessageKB(chat_id, "لطفا موارد" + Constants.WARN + "دار راوارد کنید:", c.showAccountKeyboard());
+                            c.showAccountInfo();
+                            c.showAccountKeyboard();
+                            sendMessageKB(chat_id, MessageControler.getStringBuilder().toString(),MessageControler.getKeyboard());
+                            sendMessageKB(chat_id, "لطفا موارد" + Constants.WARN + "دار راوارد کنید:", MessageControler.getKeyboard());
+                        } else if (message_text.equals(Constants.FINISHBASKET)) {
+                            c.showAccountInfo();
+                            sendMessage(chat_id, MessageControler.getStringBuilder().toString());
+                            c.saveBasket();
+                            sendMessageKB(chat_id, MessageControler.getStringBuilder().toString(), MessageControler.getKeyboard());
+
+
                         } else if (message_text.equals(Constants.FINISHORDER)) {
-                            if (!c.isInfoComplete()) {
-                                c.showAccountKeyboard();
-                            } else {
-                                c.showAccountKeyboard();
-                            }
+                            c.getBasket().showBasket(chat_id);
+                            sendMessageKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getKeyboard());
                         } else if (message_text.equals(Constants.FNAME) || message_text.equals(Constants.W_FNAME)) {
                             sendMessage(chat_id, "لطفا نام خود را وارد کنید:\nترجیها نام دریافت کننده سفارشات");
                             c.setChatState(ChatState.S_NAME);
@@ -163,6 +155,11 @@ public class PizzaOrder extends TelegramLongPollingBot {
                         } else if (message_text.equals(Constants.RPHONE) || message_text.equals(Constants.W_RPHONE)) {
                             sendMessage(chat_id, "لطفا شماره تلفن معرف خود را وارد کنید:");
                             c.setChatState(ChatState.S_RPHONE);
+                        } else if (message_text.equals(Constants.EMPTYBASKET)) {
+                            c.getBasket().emptyBasket();
+                            c.getBasket().showBasket(chat_id);
+                            sendMessageKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getKeyboard());
+
                         } else if (message_text.equals("/hide")) {
                             SendMessage msg = new SendMessage()
                                     .setChatId(chat_id)
@@ -208,75 +205,28 @@ public class PizzaOrder extends TelegramLongPollingBot {
                             sendMessage(chat_id, "آدرس: " + c.getAddress());
                         }
                     } else {
-                        System.out.println("call back");
                         if (update.hasCallbackQuery()) {
-                            //update.getMessage();
-                            // Set variables
-                            System.out.println("____________________________________________");
                             long message_id = update.getCallbackQuery().getMessage().getMessageId();
                             if (call_data.startsWith("food")) {
-                                selectFood(chat_id, call_data, "food");
-                                String answer = "پیتزا ثبت شد";
-                                EditMessageText new_message = new EditMessageText()
-                                        .setChatId(chat_id)
-                                        .setMessageId(toIntExact(message_id))
-                                        .setText(answer);
+                                c.getBasket().selectFood(call_data, "food");
+                                editMessage(chat_id, message_id, "پیتزا ثبت شد");
                                 showNumber(chat_id);
-
-                                try {
-                                    execute(new_message);
-                                } catch (TelegramApiException e) {
-                                    e.printStackTrace();
-                                }
 
                             } else if (call_data.startsWith("drink")) {
-                                selectFood(chat_id, call_data, "drink");
-                                String answer = "نوشیدنی ثبت شد";
-                                EditMessageText new_message = new EditMessageText()
-                                        .setChatId(chat_id)
-                                        .setMessageId(toIntExact(message_id))
-                                        .setText(answer);
+                                c.getBasket().selectFood(call_data, "drink");
+                                editMessage(chat_id, message_id, "نوشیدنی ثبت شد");
                                 showNumber(chat_id);
-
-                                try {
-                                    execute(new_message);
-                                } catch (TelegramApiException e) {
-                                    e.printStackTrace();
-                                }
 
                             } else if (call_data.startsWith("salad")) {
-                                selectFood(chat_id, call_data, "salad");
-                                String answer = "سالاد ثبت شد";
-                                EditMessageText new_message = new EditMessageText()
-                                        .setChatId(chat_id)
-                                        .setMessageId(toIntExact(message_id))
-                                        .setText(answer);
+                                c.getBasket().selectFood(call_data, "salad");
+                                editMessage(chat_id, message_id, "سالاد ثبت شد");
                                 showNumber(chat_id);
 
-                                try {
-                                    execute(new_message);
-                                } catch (TelegramApiException e) {
-                                    e.printStackTrace();
-                                }
-
                             } else if (call_data.startsWith("num")) {
-                                selectNumber(chat_id, call_data);
+                                c.getBasket().selectNumber(call_data);
                                 String answer = "تعداد: " + call_data.replaceFirst("num", "");
-                                EditMessageText new_message = new EditMessageText()
-                                        .setChatId(chat_id)
-                                        .setMessageId(toIntExact(message_id))
-                                        .setText(answer);
-                                try {
-                                    execute(new_message);
-                                } catch (TelegramApiException e) {
-                                    e.printStackTrace();
-                                }
-                                /*List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-                List<InlineKeyboardButton> rowInline1 = new ArrayList<>();
-                rowInline1.add(new InlineKeyboardButton().setText("بله").setCallbackData("chooseyes"));
-                rowInline1.add(new InlineKeyboardButton().setText("خیر").setCallbackData("chooseno"));
-                rowsInline.add(rowInline1);
-                sendMessageIKB(chat_id, "انتخاب دیگری دارید؟", rowsInline);*/
+                                editMessage(chat_id, message_id, answer);
+
                             } else if (call_data.startsWith("choose")) {
 
                             }
@@ -304,24 +254,6 @@ public class PizzaOrder extends TelegramLongPollingBot {
         return "200356273:AAHjO7evJacJrDUWrOrN_HSuHq1DOQWnOvM";
     }
 
-    public void selectFood(long chatId, String eatableId, String type) {
-        for (Customer c : customers.getCusList()) {
-            if (c.getChat_id() == chatId) {
-                int id = Integer.valueOf(eatableId.replaceFirst(type, ""));
-                c.getBasket().selectEatable(id);
-            }
-        }
-    }
-
-    public void selectNumber(long chatId, String num) {
-        for (Customer c : customers.getCusList()) {
-            if (c.getChat_id() == chatId) {
-                int n = Integer.valueOf(num.replaceFirst("num", ""));
-                c.getBasket().selectNum(n);
-            }
-        }
-    }
-
     public void showNumber(long chatId) {
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
         //row 1
@@ -347,35 +279,6 @@ public class PizzaOrder extends TelegramLongPollingBot {
         rowsInline.add(rowInline3);
         // Add it to the message
         sendMessageIKB(chatId, "لطفا تعداد پیتزا را انتخاب کنید:", rowsInline);
-    }
-
-    public void showFood(long chatId, int type) {
-        String price = "قیمت:  ";
-        String eatType = "";
-        switch (type) {
-            case 1:
-                eatType = "food";
-                break;
-            case 2:
-                eatType = "drink";
-                break;
-            case 3:
-                eatType = "salad";
-                break;
-            default:
-                break;
-        }
-        ArrayList<Eatable> foodList = Eatable.getEatableFromDbByType(type);
-
-        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-        for (Eatable e : foodList) {
-            List<InlineKeyboardButton> rowInline = new ArrayList<>();
-            rowInline.add(new InlineKeyboardButton().setText(e.getName() + price + e.getPrice()).setCallbackData(eatType + e.getId()));
-            // Set the keyboard to the markup
-            rowsInline.add(rowInline);
-        }
-        // Add it to the message
-        sendMessageIKB(chatId, "منوی لانیا:", rowsInline);
     }
 
     public void sendMessageIKB(long chat_id, String textMessage, List<List<InlineKeyboardButton>> inlineKeyboard) {
@@ -459,6 +362,18 @@ public class PizzaOrder extends TelegramLongPollingBot {
             if (chat_id == c.getChat_id()) {
                 c.setChatState(chatState);
             }
+        }
+    }
+
+    private void editMessage(long chat_id, long message_id, String answer) {
+        EditMessageText new_message = new EditMessageText()
+                .setChatId(chat_id)
+                .setMessageId(toIntExact(message_id))
+                .setText(answer);
+        try {
+            execute(new_message);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
         }
     }
 }

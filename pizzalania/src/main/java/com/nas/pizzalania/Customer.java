@@ -47,9 +47,8 @@ public class Customer {
 
     }
 
-    public List<KeyboardRow> showAccountKeyboard() {
-        List<KeyboardRow> keyboard = new ArrayList<>();
-        if (getP_is_c() == 0) {
+    public void showAccountKeyboard() {
+        ArrayList<KeyboardRow> keyboard = new ArrayList<>();
             KeyboardRow row1 = new KeyboardRow();
 
             if (getfName().equals("")) {
@@ -90,14 +89,9 @@ public class Customer {
             }
             row1.add(Constants.BACK);
             keyboard.add(row1);
-            //sendMessageKB(chat_id, "اطلاعات شما تکمیل نیست!", keyboard);
-        } else if (getP_is_c() == 1) {
 
-        }
-        return keyboard;
-
+            MessageControler.setKeyboard(keyboard);
     }
-
     public boolean isInfoComplete() {
         return !(getfName().equals("") || getlName().equals("") || getPhone().equals("") || getAddress().equals(""));
     }
@@ -186,6 +180,7 @@ public class Customer {
         this.chatState = chatState;
     }
 
+    
     public void updateCustomer(Customer cus) {
         SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Customer.class).buildSessionFactory();
         Session session = factory.getCurrentSession();
@@ -199,7 +194,7 @@ public class Customer {
 
     }
 
-    public String showAccountInfo() {
+    public void showAccountInfo() {
         StringBuilder stringBuilder = new StringBuilder("اطلاعات حساب:");
         stringBuilder.append("\n\n")
                 .append("نام: " + getfName()+"\n")
@@ -207,8 +202,26 @@ public class Customer {
                 .append("تلفن همراه: "+getPhone()+"\n")
                 .append("معرف:"+getrPhone()+"\n")
                 .append("آدرس: "+getAddress()+"\n");
-        return stringBuilder.toString();
+        MessageControler.setStringBuilder(stringBuilder);
 
+    }
+    
+    public void saveBasket(){
+            ArrayList<KeyboardRow> keyboard = new ArrayList<KeyboardRow>();
+            KeyboardRow row1 = new KeyboardRow();
+            row1.add(Constants.ACCOUNT);
+            keyboard.add(row1);
+
+            row1 = new KeyboardRow();
+            row1.add(Constants.BACK);
+            keyboard.add(row1);
+            
+            MessageControler.setKeyboard(keyboard);
+            
+            StringBuilder stringBuilder = new StringBuilder("اگر قبلا اطلاعات خود را کامل نکرده اید لطفا با انتخاب گزینه ");
+            stringBuilder.append(Constants.ACCOUNT);
+            stringBuilder.append(" اطلاعات خود را تکمیل نماید.\nدر غیر اینصورت ادامه خرید را کلیک کنید.");
+            MessageControler.setStringBuilder(stringBuilder);
     }
 
 }
