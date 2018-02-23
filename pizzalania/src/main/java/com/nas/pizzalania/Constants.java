@@ -47,7 +47,8 @@ public class Constants {
     //Basket
     final static String SHOWLASTORDER = "مشاهده آخرین خرید";
     final static String EMPTYBASKET = "خالی کردن سبد";
-    final static String FINISHBASKET = "تاثید سبد و تکمیل خرید";
+    final static String FINISH = "نهایی کردن خرید";
+    final static String FINISHBASKET = "تایید سبد و تکمیل خرید";
     final static String ADDTOBASKET = "افزودن به سبد";
     final static String CONTINUE = "";
 

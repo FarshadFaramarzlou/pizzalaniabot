@@ -7,7 +7,6 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
 
 @Entity
 @Table(name = "eatable")
@@ -15,11 +14,11 @@ public class Eatable {
 
     @Id
     @Column(name = "id")
-    private String Id;
+    private int Id;
     @Column(name = "name")
     private String Name = "";
     @Column(name = "price")
-    private float price = 0;
+    private float price = 9999999;
     @Column(name = "des")
     private String Des;
     @Column(name = "type")
@@ -29,7 +28,7 @@ public class Eatable {
 
     }
 
-    public Eatable(String id, String name, float price, String Des, String type) {
+    public Eatable(int id, String name, float price, String Des, String type) {
         this.Id = id;
         this.Name = name;
         this.price = price;
@@ -38,11 +37,11 @@ public class Eatable {
 
     }
 
-    public String getId() {
+    public int getId() {
         return Id;
     }
 
-    public void setId(String Id) {
+    public void setId(int Id) {
         this.Id = Id;
     }
 
@@ -72,8 +71,7 @@ public class Eatable {
 
     public static ArrayList<Eatable> getEatableFromDbByType(int type){
         ArrayList<Eatable> found;
-        SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Eatable.class
-        ).buildSessionFactory();
+        SessionFactory factory = HibernateAnnotationUtil.getSessionFactory();
         Session session = factory.getCurrentSession();
 
         try {
@@ -82,22 +80,21 @@ public class Eatable {
             session.getTransaction().commit();
 
         } finally {
-            factory.close();
+            //factory.close();
         }
         return found;
     }
     
     public static Eatable getFoodFromDbById(String eatableId) {
-        SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Eatable.class).buildSessionFactory();
+        SessionFactory factory = HibernateAnnotationUtil.getSessionFactory();
         Session session = factory.getCurrentSession();
         ArrayList<Eatable> found;
         try {
             session.beginTransaction();
             found = (ArrayList<Eatable>) session.createQuery("from Eatable where Id =:id ").setParameter("id", eatableId).list();
             session.getTransaction().commit();
-
         } finally {
-            factory.close();
+            //factory.close();
         }
         if (found.isEmpty()) {
             return null;

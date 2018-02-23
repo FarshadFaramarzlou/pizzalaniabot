@@ -3,11 +3,15 @@ package com.nas.pizzalania;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import org.hibernate.Session;
@@ -18,9 +22,12 @@ import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
 
 @Entity
 @Table(name = "bill")
-public class Basket {
+public class Bill {
 
-    @Transient
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "bill_order_item", joinColumns = {
+        @JoinColumn(name = "id_bill")}, inverseJoinColumns = {
+        @JoinColumn(name = "id_order_item")})
     private List<OrderItem> orderItems;
 
     @Id
@@ -45,9 +52,6 @@ public class Basket {
 
     @Column(name = "rebate_sum")
     private double rebateSum;
-    
-    @Column(name = "id_customer_fk")
-    private long id_customer_fk;
 
     @Transient
     private List<List<InlineKeyboardButton>> rowsInline = null;
@@ -56,24 +60,12 @@ public class Basket {
     @Transient
     private StringBuilder stringBuilder = null;
 
-    public Basket() {
-    }
-
     public void setOrderItems(List<OrderItem> orderItems) {
         this.orderItems = orderItems;
     }
 
-    public Basket(long id_cutomer_fk) {
-        setId_customer_fk(id_cutomer_fk);
+    public Bill() {
         this.orderItems = new ArrayList<>();
-    }
-
-    public long getId_customer_fk() {
-        return id_customer_fk;
-    }
-
-    public void setId_customer_fk(long id_customer_fk) {
-        this.id_customer_fk = id_customer_fk;
     }
 
     public void sumItemMoney() {
@@ -238,9 +230,9 @@ public class Basket {
             row1.add(Constants.BACK);
             keyboard.add(row1);
 
-            stringBuilder = new StringBuilder("سبد شما خالی است.");
+            stringBuilder = new StringBuilder("ÓÈÏ ÔãÇ ÎÇá? ÇÓÊ.");
             stringBuilder.append("\n\n");
-            stringBuilder.append("با فشردن دکمه\" " + Constants.SHOWLASTORDER + "\"" + "می توانید آخرین خرید خود را تکرار کنید.");
+            stringBuilder.append("ÈÇ ÝÔÑÏä Ï˜ãå\" " + Constants.SHOWLASTORDER + "\"" + "ã? ÊæÇä?Ï ÂÎÑ?ä ÎÑ?Ï ÎæÏ ÑÇ Ê˜ÑÇÑ ˜ä?Ï.");
 
         } else {
 
@@ -258,43 +250,43 @@ public class Basket {
             row1.add(Constants.BACK);
             keyboard.add(row1);
             int j = 1;
-            stringBuilder = new StringBuilder("سبد خرید:");
+            stringBuilder = new StringBuilder("ÓÈÏ ÎÑ?Ï:");
             stringBuilder.append("\n");
 
             for (OrderItem o : getOrderItems()) {
                 stringBuilder.append("\n").append(j)
                         .append("- ")
                         .append(o.getEatable().getName())
-                        .append(" - قیمت:")
+                        .append(" - Þ?ãÊ:")
                         .append(o.getEatable().getPrice())
-                        .append(" - تعداد:")
+                        .append(" - ÊÚÏÇÏ:")
                         .append(o.getNum());
                 moneySum = +o.getNum() * o.getEatable().getPrice();
                 j++;
             }
 
             stringBuilder.append("\n\n");
-            stringBuilder.append(String.valueOf("مبلغ کل خرید: " + moneySum));
+            stringBuilder.append(String.valueOf("ãÈáÛ ˜á ÎÑ?Ï: " + moneySum));
 
         }
 
     }
 
     public void showFood(int type) {
-        String price = "قیمت:  ";
+        String price = "Þ?ãÊ:  ";
         String eatType = "";
         switch (type) {
             case 1:
                 eatType = "food";
-                stringBuilder = new StringBuilder("منوی پیتزا:\n");
+                stringBuilder = new StringBuilder("ãäæ? ?ÊÒÇ:\n");
                 break;
             case 2:
                 eatType = "drink";
-                stringBuilder = new StringBuilder("منوی نوشیدنی:\n");
+                stringBuilder = new StringBuilder("ãäæ? äæÔ?Ïä?:\n");
                 break;
             case 3:
                 eatType = "salad";
-                stringBuilder = new StringBuilder("منوی سالاد:\n");
+                stringBuilder = new StringBuilder("ãäæ? ÓÇáÇÏ:\n");
                 break;
             default:
                 break;

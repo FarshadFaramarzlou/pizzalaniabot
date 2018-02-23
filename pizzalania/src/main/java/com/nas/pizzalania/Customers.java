@@ -8,17 +8,9 @@ package com.nas.pizzalania;
 import java.util.ArrayList;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
 
-/**
- *
- * @author Farshad
- */
 public class Customers {
 
-    /**
-     *
-     */
     private ArrayList<Customer> cusList = new ArrayList<Customer>();
     private static Customers cusInstance;
 
@@ -60,7 +52,7 @@ public class Customers {
     }
 
     public boolean isCusExist(long chat_id) {
-        SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Customer.class).buildSessionFactory();
+        SessionFactory factory = HibernateAnnotationUtil.getSessionFactory();
         Session session = factory.getCurrentSession();
         ArrayList<Customer> found;
         try {
@@ -68,21 +60,21 @@ public class Customers {
             found = (ArrayList<Customer>) session.createQuery("from Customer where chat_id =:id ").setParameter("id", chat_id).list();
             session.getTransaction().commit();
         } finally {
-            factory.close();
+            //factory.close();
         }
 
         if (!found.isEmpty()) {
             cusList.add(found.get(0));
             return true;
         } else {
+
             return false;
         }
     }
 
     public boolean isCustomer(long chat_id) {
         for (Customer c : getCusList()) {
-            System.out.println("Customer:" + c.getChat_id());
-            if(c.getChat_id() == chat_id){
+            if (c.getChat_id() == chat_id) {
                 return true;
             }
         }
@@ -90,16 +82,18 @@ public class Customers {
     }
 
     public boolean newCustomer(Customer cus) {
-        SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Customer.class).buildSessionFactory();
+        SessionFactory factory = HibernateAnnotationUtil.getSessionFactory();
         Session session = factory.getCurrentSession();
         try {
             session.beginTransaction();
             session.save(cus);
             session.getTransaction().commit();
+            
         } finally {
-            factory.close();
+            
+            //factory.close();
         }
-        return true;
+        return isCusExist(cus.getChat_id());
     }
 
 }
