@@ -14,9 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.cfg.Configuration;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
 
 @Entity
@@ -43,7 +41,8 @@ public class Customer {
     private String address = "";
     @Column(name = "rPhone")
     private String rPhone = "";
-    @Column(name = "p_is_c")
+    @Transient
+    //@Column(name = "p_is_c")
     private int p_is_c;
     @Transient
     private int chatState = 0;
@@ -187,16 +186,20 @@ public class Customer {
     }
 
     public void updateCustomer(Customer cus) {
-
-        SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Customer.class).buildSessionFactory();
-        Session session = factory.getCurrentSession();
-
+        final Session session = HibernateUtil.getSession();
         try {
-            session.beginTransaction();
-            session.update(cus);
-            session.getTransaction().commit();
-        } catch (Exception e) {
-            factory.close();
+            final Transaction transaction = session.beginTransaction();
+            try {
+                // The real work is here
+                session.update(cus);
+                transaction.commit();
+            } catch (Exception ex) {
+                // Log the exception here
+                transaction.rollback();
+                throw ex;
+            }
+        } finally {
+            HibernateUtil.closeSession();
         }
 
     }
@@ -247,34 +250,28 @@ public class Customer {
 
     public void saveBasket() {
 
-        System.out.println(basket.getId_customer_fk());
-
-        SessionFactory sessionFactory = HibernateAnnotationUtil.getSessionFactory();
-        Session session = sessionFactory.getCurrentSession();
-        Transaction tx = null;
+        final Session session = HibernateUtil.getSession();
         try {
-            // start transaction
-            tx = session.beginTransaction();
-            // Save the Model object
-            basket.setId_customer_fk(getChat_id());
-            session.save(basket);
-            int basket_id = basket.getId();
-            for (OrderItem oi : basket.getOrderItems()) {
-                oi.setId_bill_fk(basket_id);
-                session.save(oi);
+            final Transaction transaction = session.beginTransaction();
+            try {
+                // The real work is here
+                basket.setId_customer_fk(getChat_id());
+                session.save(basket);
+                int basket_id = basket.getId();
+                for (OrderItem oi : basket.getOrderItems()) {
+                    oi.setId_bill_fk(basket_id);
+                    session.save(oi);
+                }
+                transaction.commit();
+            } catch (Exception ex) {
+                // Log the exception here
+                transaction.rollback();
+                throw ex;
             }
-            // Commit transaction
-            tx.commit();
-
-        } catch (Exception e) {
-            System.out.println("Exception occured. " + e.getMessage());
-            e.printStackTrace();
         } finally {
-            if (!sessionFactory.isClosed()) {
-                //System.out.println("Closing SessionFactory");
-                //sessionFactory.close();
-            }
-            //basket = new Basket(chat_id);
+            HibernateUtil.closeSession();
         }
+
+        //basket = new Basket(chat_id);
     }
 }

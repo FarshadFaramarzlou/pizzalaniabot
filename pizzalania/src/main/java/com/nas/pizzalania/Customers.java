@@ -1,13 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.nas.pizzalania;
 
 import java.util.ArrayList;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 
 public class Customers {
 
@@ -52,17 +47,23 @@ public class Customers {
     }
 
     public boolean isCusExist(long chat_id) {
-        SessionFactory factory = HibernateAnnotationUtil.getSessionFactory();
-        Session session = factory.getCurrentSession();
+        final Session session = HibernateUtil.getSession();
         ArrayList<Customer> found;
         try {
-            session.beginTransaction();
+            final Transaction transaction = session.beginTransaction();
+            try {
+                // The real work is here
             found = (ArrayList<Customer>) session.createQuery("from Customer where chat_id =:id ").setParameter("id", chat_id).list();
-            session.getTransaction().commit();
+                transaction.commit();
+            } catch (Exception ex) {
+                // Log the exception here
+                transaction.rollback();
+                throw ex;
+            }
         } finally {
-            //factory.close();
+            HibernateUtil.closeSession();
         }
-
+         
         if (!found.isEmpty()) {
             cusList.add(found.get(0));
             return true;
@@ -82,17 +83,24 @@ public class Customers {
     }
 
     public boolean newCustomer(Customer cus) {
-        SessionFactory factory = HibernateAnnotationUtil.getSessionFactory();
-        Session session = factory.getCurrentSession();
+        
+        final Session session = HibernateUtil.getSession();
+        ArrayList<Customer> found;
         try {
-            session.beginTransaction();
+            final Transaction transaction = session.beginTransaction();
+            try {
+                // The real work is here
             session.save(cus);
-            session.getTransaction().commit();
-            
+                transaction.commit();
+            } catch (Exception ex) {
+                // Log the exception here
+                transaction.rollback();
+                throw ex;
+            }
         } finally {
-            
-            //factory.close();
+            HibernateUtil.closeSession();
         }
+        
         return isCusExist(cus.getChat_id());
     }
 

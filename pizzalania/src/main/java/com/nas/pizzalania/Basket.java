@@ -11,8 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
+import org.hibernate.Transaction;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
 
@@ -45,7 +44,7 @@ public class Basket {
 
     @Column(name = "rebate_sum")
     private double rebateSum;
-    
+
     @Column(name = "id_customer_fk")
     private long id_customer_fk;
 
@@ -171,14 +170,20 @@ public class Basket {
     }
 
     public boolean newOrder(Customer cus) {
-        SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(OrderItem.class).buildSessionFactory();
-        Session session = factory.getCurrentSession();
+        final Session session = HibernateUtil.getSession();
         try {
-            session.beginTransaction();
-            session.save(cus);
-            session.getTransaction().commit();
+            final Transaction transaction = session.beginTransaction();
+            try {
+                // The real work is here
+                session.save(cus);
+                transaction.commit();
+            } catch (Exception ex) {
+                // Log the exception here
+                transaction.rollback();
+                throw ex;
+            }
         } finally {
-            factory.close();
+            HibernateUtil.closeSession();
         }
         return true;
     }
@@ -194,7 +199,7 @@ public class Basket {
             int index = -1;
             for (OrderItem o : getOrderItems()) {
                 index++;
-                if (o.getEatable().getId()==Integer.valueOf(id)) {
+                if (o.getEatable().getId() == Integer.valueOf(id)) {
                     flag = 1;
                     break;
                 }
@@ -260,7 +265,7 @@ public class Basket {
             int j = 1;
             stringBuilder = new StringBuilder("سبد خرید:");
             stringBuilder.append("\n");
-
+            setMoneySum(0.0);
             for (OrderItem o : getOrderItems()) {
                 stringBuilder.append("\n").append(j)
                         .append("- ")
@@ -269,7 +274,7 @@ public class Basket {
                         .append(o.getEatable().getPrice())
                         .append(" - تعداد:")
                         .append(o.getNum());
-                moneySum = +o.getNum() * o.getEatable().getPrice();
+                moneySum = o.getNum() * o.getEatable().getPrice() + moneySum;
                 j++;
             }
 
@@ -281,7 +286,7 @@ public class Basket {
     }
 
     public void showFood(int type) {
-        String price = "قیمت:  ";
+        String price = " قیمت: ";
         String eatType = "";
         switch (type) {
             case 1:

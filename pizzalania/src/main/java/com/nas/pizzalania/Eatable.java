@@ -6,7 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 
 @Entity
 @Table(name = "eatable")
@@ -23,7 +23,7 @@ public class Eatable {
     private String Des;
     @Column(name = "type")
     private String type;
-    
+
     public Eatable() {
 
     }
@@ -69,42 +69,50 @@ public class Eatable {
         this.Des = Des;
     }
 
-    public static ArrayList<Eatable> getEatableFromDbByType(int type){
+    public static ArrayList<Eatable> getEatableFromDbByType(int type) {
         ArrayList<Eatable> found;
-        SessionFactory factory = HibernateAnnotationUtil.getSessionFactory();
-        Session session = factory.getCurrentSession();
-
+        final Session session = HibernateUtil.getSession();
         try {
-            session.beginTransaction();
-            found = (ArrayList<Eatable>) session.createQuery("from Eatable where type =:type ").setParameter("type", type).list();
-            session.getTransaction().commit();
-
+            final Transaction transaction = session.beginTransaction();
+            try {
+                // The real work is here
+                found = (ArrayList<Eatable>) session.createQuery("from Eatable where type =:type ").setParameter("type", type).list();
+                transaction.commit();
+            } catch (Exception ex) {
+                // Log the exception here
+                transaction.rollback();
+                throw ex;
+            }
         } finally {
-            //factory.close();
+            HibernateUtil.closeSession();
         }
+
         return found;
     }
-    
+
     public static Eatable getFoodFromDbById(String eatableId) {
-        SessionFactory factory = HibernateAnnotationUtil.getSessionFactory();
-        Session session = factory.getCurrentSession();
         ArrayList<Eatable> found;
+        final Session session = HibernateUtil.getSession();
         try {
-            session.beginTransaction();
+            final Transaction transaction = session.beginTransaction();
+            try {
+                // The real work is here
             found = (ArrayList<Eatable>) session.createQuery("from Eatable where Id =:id ").setParameter("id", eatableId).list();
-            session.getTransaction().commit();
+                transaction.commit();
+            } catch (Exception ex) {
+                // Log the exception here
+                transaction.rollback();
+                throw ex;
+            }
         } finally {
-            //factory.close();
+            HibernateUtil.closeSession();
         }
+        
         if (found.isEmpty()) {
             return null;
         } else {
             return found.get(0);
         }
     }
-    
-    
-    
 
-    
 }
