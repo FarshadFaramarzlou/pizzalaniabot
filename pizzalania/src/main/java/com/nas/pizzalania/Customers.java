@@ -53,7 +53,7 @@ public class Customers {
             final Transaction transaction = session.beginTransaction();
             try {
                 // The real work is here
-            found = (ArrayList<Customer>) session.createQuery("from Customer where chat_id =:id ").setParameter("id", chat_id).list();
+                found = (ArrayList<Customer>) session.createQuery("from Customer where chat_id =:id ").setParameter("id", chat_id).list();
                 transaction.commit();
             } catch (Exception ex) {
                 // Log the exception here
@@ -63,12 +63,11 @@ public class Customers {
         } finally {
             HibernateUtil.closeSession();
         }
-         
+
         if (!found.isEmpty()) {
             cusList.add(found.get(0));
             return true;
         } else {
-
             return false;
         }
     }
@@ -83,14 +82,14 @@ public class Customers {
     }
 
     public boolean newCustomer(Customer cus) {
-        
+
         final Session session = HibernateUtil.getSession();
         ArrayList<Customer> found;
         try {
             final Transaction transaction = session.beginTransaction();
             try {
                 // The real work is here
-            session.save(cus);
+                session.save(cus);
                 transaction.commit();
             } catch (Exception ex) {
                 // Log the exception here
@@ -100,7 +99,7 @@ public class Customers {
         } finally {
             HibernateUtil.closeSession();
         }
-        
+
         return isCusExist(cus.getChat_id());
     }
 

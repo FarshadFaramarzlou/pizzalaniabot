@@ -54,7 +54,7 @@ public class Customer {
     public void showAccountKeyboard() {
         ArrayList<KeyboardRow> keyboard = new ArrayList<>();
         KeyboardRow row1 = new KeyboardRow();
-
+        
         if (getfName().equals("")) {
             row1.add(Constants.FNAME + Constants.WARN);
             System.out.println(getfName());
@@ -77,21 +77,24 @@ public class Customer {
         } else {
             row1.add(Constants.PHONE);
         }
-
+/*
         if (getrPhone().equals("")) {
             row1.add(Constants.RPHONE + Constants.WARN);
         } else {
             row1.add(Constants.RPHONE);
         }
         keyboard.add(row1);
-
-        row1 = new KeyboardRow();
+*/
+        //row1 = new KeyboardRow();
         if (getAddress().equals("")) {
             row1.add(Constants.ADDRESS + Constants.WARN);
         } else {
             row1.add(Constants.ADDRESS);
         }
+        keyboard.add(row1);
+        row1 = new KeyboardRow();
         row1.add(Constants.BACK);
+        row1.add(Constants.SHOPPINGBASKET);
         keyboard.add(row1);
 
         MessageControler.setKeyboard(keyboard);
@@ -247,6 +250,7 @@ public class Customer {
         stringBuilder.append(" اطلاعات خود را تکمیل نماید.\nدر غیر اینصورت ادامه خرید را کلیک کنید.");
         MessageControler.setStringBuilder(stringBuilder);
     }
+  
 
     public void saveBasket() {
 

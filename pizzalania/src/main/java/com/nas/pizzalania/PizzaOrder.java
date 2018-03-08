@@ -24,6 +24,7 @@ public class PizzaOrder extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         // We check if the update has a message and the message has text
+
         if (update.hasMessage() || update.hasCallbackQuery()) {
             // Set variables
             String call_data = "";
@@ -66,7 +67,6 @@ public class PizzaOrder extends TelegramLongPollingBot {
                     if (c.getChat_id() == chat_id) {
                         if (c.getChatState() == 0 && !update.hasCallbackQuery()) {
 
-                            System.out.println("normall");
                             if (message_text.equals(Constants.ORDER) || message_text.equals(Constants.ADDTOBASKET)) {
                                 if (!customers.isCustomer(chat_id)) {
                                     sendMessage(chat_id, "لطفا دوباره وارد شوید");
@@ -109,20 +109,38 @@ public class PizzaOrder extends TelegramLongPollingBot {
                                 c.getBasket().showFood(3);
                                 sendMessageIKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getRowsInline());
 
-                            } else if (message_text.equals("--")) {
-
+                            } else if (message_text.equals(Constants.REBATE)) {
+                                sendMessage(chat_id,"منتظر تخفیف های پیتزا تنوری لانیا باشید!"+"\n\n"+"به زودی شما را شگفت زده خواهیم کرد");
                             } else if (message_text.equals(Constants.SHOPPINGBASKET)) {
                                 c.getBasket().showBasket(chat_id);
                                 sendMessageKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getKeyboard());
 
                             } else if (message_text.equals(Constants.SUPPORT)) {
-                                sendMessage(chat_id, "تفن پشتیبانی: 09192795531\n");
+                                sendMessage(chat_id,Constants.aboutPizza+Constants.tel+Constants.aboutprgmr+Constants.aboutApp);
+
+                            } else if (message_text.equals(Constants.FOLLOWORDER)) {
+                                sendMessage(chat_id,"مشتری گرامی این بخش در حال حاضر راه اندازی نشده است و شما می توانید برای پیگیری سفارش با شماره "+"09192795531"+" تماس بگیرید");
 
                             } else if (message_text.equals(Constants.ACCOUNT)) {
+
+                                String un = update.getMessage().getChat().getUserName();
+                                String fn = update.getMessage().getChat().getFirstName();
+                                String ln = update.getMessage().getChat().getLastName();
+                                if (c.getfName().equals("")) {
+                                    c.setfName(fn);
+                                    c.updateCustomer(c);
+                                }
+                                if (c.getlName().equals("")) {
+                                    if (ln != null) {
+                                        c.setlName(ln);
+                                        c.updateCustomer(c);
+                                    }
+                                }
                                 c.showAccountInfo();
                                 c.showAccountKeyboard();
                                 sendMessageKB(chat_id, MessageControler.getStringBuilder().toString(), MessageControler.getKeyboard());
                                 sendMessageKB(chat_id, "لطفا موارد" + Constants.WARN + "دار راوارد کنید:", MessageControler.getKeyboard());
+
                             } else if (message_text.equals(Constants.FINISHBASKET)) {
                                 c.showAccountInfo();
                                 sendMessage(chat_id, MessageControler.getStringBuilder().toString());
@@ -261,8 +279,9 @@ public class PizzaOrder extends TelegramLongPollingBot {
 
                     }
                 }
-                if(errorFlag)
-                sendMessage(chat_id, "خطا: شما وارد ربات نشدید لطفا روی استارت بزنید\n\n" + "/start");
+                if (errorFlag) {
+                    sendMessage(chat_id, "خطا: شما وارد ربات نشدید لطفا روی استارت بزنید\n\n" + "/start");
+                }
 
             }
         }
@@ -364,6 +383,7 @@ public class PizzaOrder extends TelegramLongPollingBot {
         keyboard.add(row1);
 
         row1 = new KeyboardRow();
+
         row1.add(Constants.FOLLOWORDER);
         row1.add(Constants.REBATE);
         keyboard.add(row1);

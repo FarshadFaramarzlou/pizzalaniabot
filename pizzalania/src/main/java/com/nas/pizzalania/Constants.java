@@ -16,10 +16,11 @@ public class Constants {
     final static String LANIAMENU = "منوی لانیا 📄";
     final static String REBATE = "🏆 تخفیف و جایزه";
     final static String FOLLOWORDER = "پیگیری سفارش 🔍";
-    final static String SUPPORT = "☎ پشتیبانی";
+    final static String SUPPORT = "☎ درباره ما";
 
     //Account
     final static String ACCOUNT = "حساب کاربری";
+    final static String W_ACCOUNT = ACCOUNT + Constants.WARN;
     final static String FNAME = "نام";
     final static String LNAME = "نام خانوادگی";
     final static String PHONE = "شماره موبایل";
@@ -51,5 +52,9 @@ public class Constants {
     final static String FINISHBASKET = "تایید سبد و تکمیل خرید";
     final static String ADDTOBASKET = "افزودن به سبد";
     final static String CONTINUE = "";
-
+    
+    final static String aboutApp ="\n"+ "نسخه " + "1.0";
+    final static String aboutprgmr ="\n"+ "برنامه نویس: فرشاد فرامرزلو";
+    final static String aboutPizza = "پیتزای تنوری لانیا"+"\nزنجان - منظریه-روبروی آپارتمان های الغدیر";
+final static String tel ="\n"+"راه های ارتباطی:\n"+ "024-33544101\n09192795531\n09353302945\n\nchannel:@pizzalania";
 }
