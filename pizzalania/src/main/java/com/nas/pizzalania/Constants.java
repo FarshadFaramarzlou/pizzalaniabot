@@ -10,6 +10,7 @@ package com.nas.pizzalania;
  * @author Farshad
  */
 public class Constants {
+
     //main
     final static String ORDER = "🍕 سفارش";
     final static String SHOPPINGBASKET = "🛒 سبد خرید";
@@ -26,7 +27,7 @@ public class Constants {
     final static String PHONE = "شماره موبایل";
     final static String ADDRESS = "آدرس";
     final static String RPHONE = "تلفن معرف";
-    
+
     //WARN_Account
     final static String W_FNAME = "نام" + Constants.WARN;
     final static String W_LNAME = "نام خانوادگی" + Constants.WARN;
@@ -44,7 +45,7 @@ public class Constants {
     final static String ENTERAGAIN = "لطفا دوباره وارد شوید!";
     final static String WARN = "⚠️";
     final static String BACK = "بازگشت";
-    
+
     //Basket
     final static String SHOWLASTORDER = "مشاهده آخرین خرید";
     final static String EMPTYBASKET = "خالی کردن سبد";
@@ -52,9 +53,11 @@ public class Constants {
     final static String FINISHBASKET = "تایید سبد و تکمیل خرید";
     final static String ADDTOBASKET = "افزودن به سبد";
     final static String CONTINUE = "";
+
+    final static String rebate1 = "1- پیک موتوری رایگان در خرید های بالاتر از 30 هزار تومان\n";
+    final static String aboutApp = "\n" + "نسخه " + "1.0";
+    final static String aboutprgmr = "\n" + "برنامه نویس: فرشاد فرامرزلو- فاطمه ندرلو";
+    final static String aboutPizza = "پیتزای تنوری لانیا" + "\nزنجان - منظریه-روبروی آپارتمان های الغدیر";
+    final static String tel = "\n" + "راه های ارتباطی:\n" + "024-33544101\n09192795531\n09353302945\n\nchannel:@pizzalania";
     
-    final static String aboutApp ="\n"+ "نسخه " + "1.0";
-    final static String aboutprgmr ="\n"+ "برنامه نویس: فرشاد فرامرزلو";
-    final static String aboutPizza = "پیتزای تنوری لانیا"+"\nزنجان - منظریه-روبروی آپارتمان های الغدیر";
-final static String tel ="\n"+"راه های ارتباطی:\n"+ "024-33544101\n09192795531\n09353302945\n\nchannel:@pizzalania";
 }

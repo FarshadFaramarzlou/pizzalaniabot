@@ -110,7 +110,7 @@ public class PizzaOrder extends TelegramLongPollingBot {
                                 sendMessageIKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getRowsInline());
 
                             } else if (message_text.equals(Constants.REBATE)) {
-                                sendMessage(chat_id,"منتظر تخفیف های پیتزا تنوری لانیا باشید!"+"\n\n"+"به زودی شما را شگفت زده خواهیم کرد");
+                                sendMessage(chat_id,Constants.rebate1);
                             } else if (message_text.equals(Constants.SHOPPINGBASKET)) {
                                 c.getBasket().showBasket(chat_id);
                                 sendMessageKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getKeyboard());
