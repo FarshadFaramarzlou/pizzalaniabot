@@ -110,13 +110,13 @@ public class PizzaOrder extends TelegramLongPollingBot {
                                 sendMessageIKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getRowsInline());
 
                             } else if (message_text.equals(Constants.REBATE)) {
-                                sendMessage(chat_id,Constants.rebate1);
+                                sendMessage(chat_id,Constants.REBATE+":\n\n"+Constants.rebate1);
                             } else if (message_text.equals(Constants.SHOPPINGBASKET)) {
                                 c.getBasket().showBasket(chat_id);
                                 sendMessageKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getKeyboard());
 
                             } else if (message_text.equals(Constants.SUPPORT)) {
-                                sendMessage(chat_id,Constants.aboutPizza+Constants.tel+Constants.aboutprgmr+Constants.aboutApp);
+                                sendMessage(chat_id,Constants.aboutPizza+Constants.tel+Constants.aboutApp);
 
                             } else if (message_text.equals(Constants.FOLLOWORDER)) {
                                 sendMessage(chat_id,"مشتری گرامی این بخش در حال حاضر راه اندازی نشده است و شما می توانید برای پیگیری سفارش با شماره "+"09192795531"+" تماس بگیرید");
