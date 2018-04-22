@@ -40,17 +40,17 @@ public class PizzaOrder extends TelegramLongPollingBot {
             }
             if (message_text.equals("/start")) {
                 if (customers.isCustomer(chat_id)) {
-                    sendMessage(chat_id, "به پیتزا تنوری لانیا خوش آمدید");
+                    sendMessage(chat_id, "به به سیستم آنلاین لانیا خوش آمدید");
                     log("farsha", "faramarzlou", "00", "Start state 1", "Customer Size: " + customers.getCusList().size());
                     goToMain(chat_id);
                 } else if (customers.isCusExist(chat_id)) {
-                    sendMessage(chat_id, "به پیتزا تنوری لانیا خوش آمدید");
+                    sendMessage(chat_id, "به به سیستم آنلاین لانیا خوش آمدید");
                     log("farshad", "faramarzlou", "00", "Start state 2", "Customer Size: " + customers.getCusList().size());
                     goToMain(chat_id);
                 } else {
                     Customer cus = new Customer(chat_id);
                     if (customers.newCustomer(cus)) {
-                        sendMessage(chat_id, "به پیتزا تنوری لانیا خوش آمدید");
+                        sendMessage(chat_id, "به به سیستم آنلاین لانیا خوش آمدید");
                         log("farshad", "faramarzlou", "00", "Start state 3", "Customer Size: " + customers.getCusList().size());
                         goToMain(chat_id);
                     } else {
@@ -67,7 +67,7 @@ public class PizzaOrder extends TelegramLongPollingBot {
                     if (c.getChat_id() == chat_id) {
                         if (c.getChatState() == 0 && !update.hasCallbackQuery()) {
 
-                            if (message_text.equals(Constants.ORDER) || message_text.equals(Constants.ADDTOBASKET)) {
+                            if (message_text.equals(Constants.FASTFOOD) || message_text.equals(Constants.ADDTOBASKET)) {
                                 if (!customers.isCustomer(chat_id)) {
                                     sendMessage(chat_id, "لطفا دوباره وارد شوید");
                                 } else {
@@ -93,7 +93,10 @@ public class PizzaOrder extends TelegramLongPollingBot {
                             } else if (message_text.equals(Constants.PIZZA)) {
                                 c.getBasket().showFood(1);
                                 sendMessageIKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getRowsInline());
-                            } else if (message_text.equals(Constants.DRINK)) {
+                            }else if (message_text.equals(Constants.JAGOOR)) {
+                                c.getBasket().showFood(4);
+                                sendMessageIKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getRowsInline());
+                            }  else if (message_text.equals(Constants.DRINK)) {
                                 c.getBasket().showFood(2);
                                 sendMessageIKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getRowsInline());
 
@@ -101,14 +104,37 @@ public class PizzaOrder extends TelegramLongPollingBot {
                                 c.getBasket().showFood(3);
                                 sendMessageIKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getRowsInline());
 
-                            } else if (message_text.equals(Constants.LANIAMENU)) {
-                                c.getBasket().showFood(1);
+                            } else if (message_text.equals(Constants.FOODSONNATI)) {
+                               if (!customers.isCustomer(chat_id)) {
+                                    sendMessage(chat_id, "لطفا دوباره وارد شوید");
+                                } else {
+                                    List<KeyboardRow> keyboard = new ArrayList<>();
+                                    KeyboardRow row1 = new KeyboardRow();
+                                    row1.add(Constants.JAGOOR);
+                                    keyboard.add(row1);
+
+                                    row1 = new KeyboardRow();
+                                    row1.add(Constants.DRINK);
+                                    //row1.add(Constants.SALAD);
+                                    keyboard.add(row1);
+
+                                    row1 = new KeyboardRow();
+                                    row1.add(Constants.FINISHORDER);
+                                    row1.add(Constants.BACK);
+                                    keyboard.add(row1);
+
+                                    sendMessageKB(chat_id, "لطفا یکی از گزینه ها را انتخاب کنید:", keyboard);
+                                    log("farshad", "faramarzlou", "000", message_text, "Print test");
+                                }
+                                
+                                
+                                /*c.getBasket().showFood(1);
                                 sendMessageIKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getRowsInline());
                                 c.getBasket().showFood(2);
                                 sendMessageIKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getRowsInline());
                                 c.getBasket().showFood(3);
                                 sendMessageIKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getRowsInline());
-
+*/
                             } else if (message_text.equals(Constants.REBATE)) {
                                 sendMessage(chat_id,Constants.REBATE+":\n\n"+Constants.rebate1);
                             } else if (message_text.equals(Constants.SHOPPINGBASKET)) {
@@ -116,7 +142,7 @@ public class PizzaOrder extends TelegramLongPollingBot {
                                 sendMessageKB(chat_id, c.getBasket().getStringBuilder().toString(), c.getBasket().getKeyboard());
 
                             } else if (message_text.equals(Constants.SUPPORT)) {
-                                sendMessage(chat_id,Constants.aboutPizza+Constants.tel+Constants.aboutApp);
+                                sendMessage(chat_id,Constants.aboutLania+Constants.tel+Constants.aboutApp);
 
                             } else if (message_text.equals(Constants.FOLLOWORDER)) {
                                 sendMessage(chat_id,"مشتری گرامی این بخش در حال حاضر راه اندازی نشده است و شما می توانید برای پیگیری سفارش با شماره "+"09192795531"+" تماس بگیرید");
@@ -253,17 +279,22 @@ public class PizzaOrder extends TelegramLongPollingBot {
                                 if (call_data.startsWith("food")) {
                                     c.getBasket().selectFood(call_data, "food");
                                     editMessage(chat_id, message_id, "پیتزا ثبت شد");
-                                    showNumber(chat_id);
+                                    showNumber(chat_id,1);
 
                                 } else if (call_data.startsWith("drink")) {
                                     c.getBasket().selectFood(call_data, "drink");
                                     editMessage(chat_id, message_id, "نوشیدنی ثبت شد");
-                                    showNumber(chat_id);
+                                    showNumber(chat_id,2);
 
                                 } else if (call_data.startsWith("salad")) {
                                     c.getBasket().selectFood(call_data, "salad");
                                     editMessage(chat_id, message_id, "سالاد ثبت شد");
-                                    showNumber(chat_id);
+                                    showNumber(chat_id,3);
+
+                                }else if (call_data.startsWith("jagoor")) {
+                                    c.getBasket().selectFood(call_data, "jagoor");
+                                    editMessage(chat_id, message_id, "جغوربغور ثبت شد");
+                                    showNumber(chat_id,4);
 
                                 } else if (call_data.startsWith("num")) {
                                     c.getBasket().selectNumber(call_data);
@@ -292,17 +323,19 @@ public class PizzaOrder extends TelegramLongPollingBot {
         // Return bot username
         // If bot username is @MyAmazingBot, it must return 'MyAmazingBot'
         //return "@NaazGolBot";
-        return "@pizzalaniaBot";
+        //return "@pizzalaniaBot";
+        return "@lania_bot";
     }
 
     @Override
     public String getBotToken() {
         // Return bot token from BotFather
-        return "475445507:AAHWqbA_sJcjy0-xVSmfhU0YKBJRLjuS0VE";
+        //return "475445507:AAHWqbA_sJcjy0-xVSmfhU0YKBJRLjuS0VE";
         //return "200356273:AAHjO7evJacJrDUWrOrN_HSuHq1DOQWnOvM";
+        return "593565758:AAFgI5cAifxxoNbHuopZonzSB39-yTBe25Y";
     }
 
-    public void showNumber(long chatId) {
+    public void showNumber(long chatId,int type) {
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
         //row 1
         List<InlineKeyboardButton> rowInline1 = new ArrayList<>();
@@ -326,7 +359,15 @@ public class PizzaOrder extends TelegramLongPollingBot {
         rowInline3.add(new InlineKeyboardButton().setText("12").setCallbackData("num12"));
         rowsInline.add(rowInline3);
         // Add it to the message
-        sendMessageIKB(chatId, "لطفا تعداد پیتزا را انتخاب کنید:", rowsInline);
+        if(type == 1){
+            sendMessageIKB(chatId, "لطفا تعداد پیتزا را انتخاب کنید:", rowsInline);
+        }else if(type == 2){
+            sendMessageIKB(chatId, "لطفا تعداد نوشیدنی را انتخاب کنید:", rowsInline);
+        }else if(type == 3){
+            sendMessageIKB(chatId, "لطفا تعداد سالاد را انتخاب کنید:", rowsInline);
+        }else if(type == 4){
+            sendMessageIKB(chatId, "لطفا تعداد جغوربغور را انتخاب کنید:", rowsInline);
+        }
     }
 
     public void sendMessageIKB(long chat_id, String textMessage, List<List<InlineKeyboardButton>> inlineKeyboard) {
@@ -378,8 +419,8 @@ public class PizzaOrder extends TelegramLongPollingBot {
         keyboard.add(row1);
 
         row1 = new KeyboardRow();
-        row1.add(Constants.LANIAMENU);
-        row1.add(Constants.ORDER);
+        row1.add(Constants.FOODSONNATI);
+        row1.add(Constants.FASTFOOD);
         keyboard.add(row1);
 
         row1 = new KeyboardRow();

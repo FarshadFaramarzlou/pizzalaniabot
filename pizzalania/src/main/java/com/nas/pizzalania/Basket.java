@@ -300,6 +300,9 @@ public class Basket {
             case 3:
                 eatType = "salad";
                 stringBuilder = new StringBuilder("منوی سالاد:\n");
+            case 4:
+                eatType = "jagoor";
+                stringBuilder = new StringBuilder("منوی جغوربغور:\n");
                 break;
             default:
                 break;
